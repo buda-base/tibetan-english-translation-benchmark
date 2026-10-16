@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tibetan English Translation Benchmark v1.1</title>
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#06090f; --card:#0c111b; --card-line:rgba(255,255,255,0.08);
+  --ink:#e7ecf6; --ink2:#aeb7c9; --muted:#7e879a; --faint:#6b7488;
+  --accent:#35e0d8; --accent-soft:#8ff0ea; --amber:#ffcf85;
+  --grid:#1d2433; --axis:#2b3447;
+  --s1:#3987e5; --s2:#d95926; --other:#6b7488;
+  --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+body::before{content:"";position:fixed;inset:0;z-index:-2;background:radial-gradient(1150px 640px at 80% -10%,rgba(53,224,216,0.11),transparent 60%),radial-gradient(920px 580px at 6% 6%,rgba(109,139,255,0.11),transparent 62%),linear-gradient(180deg,#06090f,#080b13 55%,#05070d)}
+a{color:#5fe3db;text-decoration:none} a:hover{color:#93f0ea}
+code{font-family:var(--mono);font-size:.92em;color:var(--accent-soft);background:rgba(53,224,216,0.1);padding:1px 6px;border-radius:5px;white-space:nowrap}
+.wrap{max-width:1300px;margin:0 auto;padding:0 26px 90px}
+.eyebrow{margin:0 0 6px;font-family:var(--mono);font-size:11.5px;letter-spacing:.22em;text-transform:uppercase;color:#5fe3db}
+h1{margin:0;font-size:clamp(34px,5vw,60px);line-height:1.02;font-weight:800;letter-spacing:-.02em;background:linear-gradient(120deg,#fff 30%,#8ff0ea);-webkit-background-clip:text;background-clip:text;color:transparent;max-width:960px}
+h2{margin:0;font-size:29px;font-weight:750;letter-spacing:-.01em}
+h3{margin:0;font-size:16px;font-weight:650}
+.lede{margin:18px 0 0;font-size:17px;line-height:1.6;color:var(--ink2);max-width:840px}
+.sub{margin:8px 0 20px;font-size:14.5px;line-height:1.6;color:var(--ink2);max-width:860px}
+.note{margin:12px 0 0;font-size:12.5px;line-height:1.55;color:var(--muted)}
+.note strong{color:#c8d0de;font-weight:600}
+section,details{scroll-margin-top:112px}
+main{display:flex;flex-direction:column;gap:44px}
+.card{background:linear-gradient(180deg,rgba(255,255,255,0.045),rgba(255,255,255,0.02));border:1px solid var(--card-line);border-radius:16px;padding:20px 22px}
+.card p{margin:0 0 12px;font-size:14.5px;line-height:1.62;color:var(--ink2)} .card p:last-child{margin-bottom:0}
+.card strong{color:var(--ink)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid2.wide{grid-template-columns:1.35fr 1fr}
+.grid2>*,main>section,.card{min-width:0}
+#pareto,#boxes,#sc-judges,#sc-v1{overflow-x:auto}
+.badges{display:flex;flex-wrap:wrap;gap:9px;margin-top:26px}
+.badge{font-family:var(--mono);font-size:11.5px;padding:6px 11px;border-radius:999px;border:1px solid var(--card-line);color:#c8d0de;background:rgba(255,255,255,0.03)}
+.badge.on{border-color:rgba(53,224,216,0.5);color:#04120f;background:#35e0d8;font-weight:700}
+a.badge:hover{border-color:rgba(53,224,216,0.6);color:#fff} a.badge.on:hover{color:#04120f;background:#5fe3db}
+.banner{margin-top:22px;padding:15px 18px;border-radius:12px;border:1px solid rgba(255,196,84,0.32);background:linear-gradient(180deg,rgba(255,196,84,0.09),rgba(255,196,84,0.03));display:flex;gap:12px;align-items:flex-start;max-width:920px}
+.banner p{margin:0;font-size:14px;line-height:1.55;color:#f2d9a6} .banner strong{color:var(--amber)}
+.banner code{color:#ffe2b0;background:rgba(255,196,84,0.12)}
+nav{position:sticky;top:0;z-index:40;margin:0 -26px 34px;padding:12px 26px;background:rgba(6,9,15,0.86);backdrop-filter:blur(10px);border-bottom:1px solid var(--card-line)}
+nav div{display:flex;flex-wrap:wrap;gap:7px;font-family:var(--mono);font-size:11.5px}
+nav a{padding:6px 10px;border-radius:8px;border:1px solid var(--card-line);color:#c8d0de;background:rgba(255,255,255,0.03)} nav a:hover{border-color:rgba(53,224,216,0.5);color:#fff}
+nav a span{color:var(--faint);margin-right:6px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:16px}
+.kpi{background:linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02));border:1px solid var(--card-line);border-radius:14px;padding:16px 18px}
+.kpi .l{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.kpi .v{margin-top:8px;font-size:32px;font-weight:750;letter-spacing:-.02em}
+.kpi .d{margin-top:2px;font-size:12.5px;color:var(--muted)}
+.lists ul{margin:0;padding-left:18px;font-size:13.5px;line-height:1.6;color:var(--ink2)} .lists li{margin-bottom:4px}
+.good{background:linear-gradient(180deg,rgba(53,224,216,0.08),rgba(53,224,216,0.02));border-color:rgba(53,224,216,0.25)}
+.bad{background:linear-gradient(180deg,rgba(255,120,120,0.07),rgba(255,120,120,0.02));border-color:rgba(255,120,120,0.25)}
+.good .eyebrow{color:#5fe3db} .bad .eyebrow{color:#ff9a9a}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-bottom:16px}
+.top{position:relative;border-radius:14px;padding:16px 18px;border:1px solid rgba(53,224,216,0.28);background:linear-gradient(180deg,rgba(53,224,216,0.08),rgba(255,255,255,0.02))}
+.top .r{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.14em}
+.top .n{margin-top:6px;font-size:15.5px;font-weight:650}
+.top .s{margin-top:8px;font-size:34px;font-weight:780;letter-spacing:-.02em}
+.top .m{margin-top:4px;font-size:12.5px;color:var(--muted);line-height:1.5}
+.head{display:flex;justify-content:space-between;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.hint{font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+.tierhead{margin:16px 0 6px;font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:10px}
+.tierhead::after{content:"";flex:1;height:1px;background:var(--card-line)}
+.tierhead:first-child{margin-top:0}
+.row{display:grid;grid-template-columns:26px minmax(150px,250px) 1fr 104px;gap:10px;align-items:center;padding:3px 0;font-size:13px}
+.row .rk{font-family:var(--mono);font-size:11px;color:var(--faint);text-align:right}
+.row .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#d6dcea}
+.row .track{height:10px;border-radius:0 4px 4px 0;background:rgba(255,255,255,0.035)}
+.row .bar{height:10px;border-radius:0 4px 4px 0;background:var(--s1)}
+.row .val{font-variant-numeric:tabular-nums;color:var(--ink);font-size:13px}
+.row .val small{color:var(--muted);font-size:11px;margin-left:5px}
+.tag{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;border:1px solid rgba(255,255,255,0.22);color:#c8d0de;border-radius:4px;padding:0 4px;margin-left:6px;vertical-align:1px}
+details{margin-top:16px;background:rgba(255,255,255,0.025);border:1px solid var(--card-line);border-radius:14px;padding:0 20px}
+summary{cursor:pointer;padding:13px 0;font-weight:650;font-size:14px;color:var(--accent-soft)}
+.tablewrap{overflow-x:auto;padding-bottom:6px}
+table{border-collapse:collapse;width:100%;font-size:12.5px;font-variant-numeric:tabular-nums}
+th{font-family:var(--mono);font-weight:500;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:right;padding:8px 9px;border-bottom:1px solid var(--axis);white-space:nowrap;position:sticky;top:0}
+td{padding:7px 9px;border-bottom:1px solid rgba(255,255,255,0.05);text-align:right;color:#d6dcea;white-space:nowrap}
+th.l,td.l{text-align:left} td .id{display:block;font-family:var(--mono);font-size:10.5px;color:var(--faint);margin-top:1px}
+td.dim{color:var(--muted)}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px}
+input[type=search]{width:min(380px,100%);padding:9px 12px;border-radius:9px;border:1px solid var(--axis);background:rgba(255,255,255,0.03);color:var(--ink);font-size:13.5px}
+.seg{display:inline-flex;border:1px solid var(--axis);border-radius:9px;overflow:hidden}
+.seg button{font:inherit;font-size:12.5px;padding:7px 13px;border:0;background:transparent;color:var(--ink2);cursor:pointer}
+.seg button[aria-pressed=true]{background:rgba(53,224,216,0.16);color:#fff}
+label.chk{font-size:12.5px;color:var(--ink2);display:inline-flex;gap:6px;align-items:center;cursor:pointer}
+.legend{display:flex;flex-wrap:wrap;gap:16px;font-size:12px;color:var(--ink2)}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.key{width:18px;height:0;border-top:2px solid var(--s1);position:relative}
+.key::after{content:"";position:absolute;left:5px;top:-5px;width:8px;height:8px;border-radius:50%;background:inherit}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--other)}
+svg{display:block;width:100%;height:auto;overflow:visible}
+svg text{font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+.tick{font-size:11px;fill:var(--muted)} .axl{font-size:12px;fill:var(--ink2)} .lab{font-size:11.5px;fill:var(--ink)} .lab2{font-size:10.5px;fill:var(--muted)}
+#tip{position:fixed;z-index:60;pointer-events:none;display:none;max-width:290px;background:#111827;border:1px solid var(--axis);border-radius:10px;padding:9px 11px;font-size:12px;line-height:1.5;color:var(--ink2);box-shadow:0 10px 30px rgba(0,0,0,0.5)}
+#tip b{display:block;color:var(--ink);font-size:13px;margin-bottom:2px}
+.heat td.c{padding:1px} .heat td.c div{padding:6px 9px;border-radius:3px}
+.heat th{white-space:normal;vertical-align:bottom;min-width:66px;line-height:1.35} .heat th.l{min-width:0}
+.method h3{margin:0 0 8px;color:var(--ink)} .method ul{margin:0;padding-left:18px;font-size:14px;line-height:1.62;color:var(--ink2)} .method li{margin-bottom:6px}
+footer{margin-top:44px;padding-top:18px;border-top:1px solid var(--card-line);font-size:12.5px;color:var(--muted);line-height:1.6}
+@media (max-width:860px){.grid2,.grid2.wide{grid-template-columns:1fr}.row{grid-template-columns:22px 1fr auto;row-gap:3px;padding:5px 0}.row .track{grid-column:2 / -1;grid-row:2}.wrap{padding:0 16px 70px}nav{position:static;margin:0 -16px 28px;padding:10px 16px}code{white-space:normal;overflow-wrap:anywhere}a{overflow-wrap:anywhere}.card{padding:16px}.heat th{min-width:50px;padding:6px 5px;letter-spacing:.02em}.heat td{padding:5px}.heat td.c div{padding:5px 6px}.heat td.l{white-space:normal;min-width:110px}.head .hint{display:none}}
+</style>
+</head>
+<body>
+<div id="tip"></div>
+<div class="wrap">
+
+<header style="padding:56px 0 30px">
+  <p class="eyebrow" style="letter-spacing:.32em;margin-bottom:18px">Version 1.1</p>
+  <h1>Tibetan English Translation Benchmark</h1>
+  <p class="lede">Run <code id="run-id"></code>. <span id="lede-n"></span> systems translated the same 200 Classical Tibetan passages, and two model judges scored every translation against the Tibetan source. This release keeps the v1 passages and translation setup, adds <span id="lede-new"></span> systems, and scores all of them again with a new pair of judges.</p>
+  <div class="badges">
+    <a class="badge on" href="#summary">v1.1</a><a class="badge" href="#method">Model-judge benchmark</a><a class="badge" href="#method">Not human MQM</a><a class="badge" href="#judges">New judge pair</a><a class="badge" id="badge-new" href="#lb-details"></a><a class="badge" href="#cost">Cost and Pareto frontier</a>
+  </div>
+  <div class="banner"><span style="font-size:15px;line-height:1.4">⚠︎</span>
+    <p><strong>Scores on this page cannot be set beside the published v1 scores.</strong> v1 was judged by <code>claude-opus-4.8</code> and <code>gemini-3.5-flash</code>. For v1.1 every translation, old and new, was scored again by <code>claude-sonnet-5-5</code> and <code>gpt-6.1-sol</code>, so the numbers here are consistent with each other and with nothing else. The <span id="ban-v1"></span> systems of v1 keep almost the same order under the new judges (rank correlation <span id="ban-rho"></span>).</p>
+  </div>
+</header>
+
+<nav><div>
+  <a href="#summary"><span>01</span>Summary</a><a href="#leaderboard"><span>02</span>Leaderboard</a><a href="#cost"><span>03</span>Score and cost</a><a href="#distribution"><span>04</span>Distribution</a><a href="#dimensions"><span>05</span>Dimensions</a><a href="#judges"><span>06</span>Judges</a><a href="#method"><span>07</span>Method and limits</a><a href="#files"><span>08</span>Files</a>
+</div></nav>
+
+<main>
+
+<section id="summary">
+  <div style="margin-bottom:18px"><p class="eyebrow">01 · Summary</p><h2>The run at a glance</h2></div>
+  <div class="kpis" id="kpis"></div>
+  <div class="grid2 wide">
+    <div class="card">
+      <h3 style="margin-bottom:12px">What changed since v1</h3>
+      <p><strong>More systems.</strong> <span id="chg-new"></span> systems were added to the <span id="chg-v1"></span> of v1, on the same 200 passages and under the same translation instructions.</p>
+      <p><strong>New judges, applied to everything.</strong> Both v1 judges were replaced, and all translations were scored again, so old and new systems are measured with one instrument.</p>
+      <p><strong>Tiers and cost.</strong> Systems are grouped into tiers that the passage-level evidence can separate, and each system's score is set against what it cost to produce the 200 translations.</p>
+      <p>It remains a <strong>model-judge benchmark, not human MQM or post-editing adjudication.</strong> No human scored these outputs.</p>
+    </div>
+    <div class="lists" style="display:flex;flex-direction:column;gap:14px">
+      <div class="card good"><p class="eyebrow" style="margin-bottom:10px">Safe conclusions</p><ul>
+        <li>Which systems form the leading group on these passages under these two judges.</li>
+        <li>That two systems in different tiers differ by more than passage-to-passage noise.</li>
+        <li>Which systems give the highest score for what they cost.</li>
+        <li>That the order of the v1 systems holds under a different pair of judges.</li></ul></div>
+      <div class="card bad"><p class="eyebrow" style="margin-bottom:10px">Do not conclude</p><ul>
+        <li>Human-verified translation quality.</li>
+        <li>That a difference between two systems in the same tier is real.</li>
+        <li>That a v1.1 score can be compared with a published v1 score.</li>
+        <li>Performance on genres or passage lengths outside this set.</li></ul></div>
+    </div>
+  </div>
+</section>
+
+<section id="leaderboard">
+  <div style="margin-bottom:6px"><p class="eyebrow">02 · Headline performance</p><h2>Leaderboard · combined score</h2></div>
+  <p class="sub">Each system's score is the mean, over its scored passages, of the average of the two judges' overall scores (0 to 100, higher is better). Systems in the same tier are not separated by the evidence: a tier is the leading system and every system not significantly below it on the passages they share.</p>
+  <div class="cards" id="top-cards"></div>
+  <div class="card">
+    <div class="head"><h3 id="lb-title"></h3><span class="hint">bar = combined score · ± = 95% interval · new = added in v1.1</span></div>
+    <div id="lb-bars"></div>
+  </div>
+  <details id="lb-details" style="scroll-margin-top:76px">
+    <summary>Full table: both judges, tier, rank range, cost and v1 rank</summary>
+    <div style="padding:6px 0 16px">
+      <div class="controls"><input id="lb-filter" type="search" placeholder="Filter by system, vendor or model id" aria-label="Filter the table"><label class="chk"><input type="checkbox" id="lb-new"> added in v1.1 only</label></div>
+      <div class="tablewrap" id="lb-table"></div>
+      <p class="note"><strong>Rank range</strong> is the 95% range of a system's rank when the 200 passages are resampled 1,000 times. <strong>Self-excluded</strong> drops a judge's score for its own model: <code>claude-sonnet-5-5</code> judged Claude Sonnet 5.5 and <code>gpt-6.1-sol</code> judged GPT-6.1 Sol, marked †. For those two systems it is the other judge's score alone, on that judge's scale, so it does not line up with the combined column. <strong>n</strong> is the number of scored passages. <strong>Cost</strong> is generation only, per 200 passages. <strong>v1 rank</strong> is the published July rank under the earlier judges.</p>
+    </div>
+  </details>
+</section>
+
+<section id="cost">
+  <div style="margin-bottom:6px"><p class="eyebrow">03 · Value</p><h2>Score against cost: the Pareto frontier</h2></div>
+  <p class="sub">A system is on the frontier when no other system scores higher for the same money or less. Everything below and to the right of the line is matched or beaten by something cheaper. The second line is the frontier among hosted models only, leaving out the one model that runs locally at no API cost.</p>
+  <div class="card">
+    <div class="controls" style="justify-content:space-between">
+      <div class="seg" role="group" aria-label="Systems shown"><button id="p-top5" aria-pressed="true"></button><button id="p-all" aria-pressed="false"></button></div>
+      <div class="legend"><span><i class="key"></i>Pareto frontier</span><span><i class="key" style="border-color:var(--s2);background:var(--s2)"></i>Frontier among hosted models</span><span><i class="dot"></i>Other systems</span></div>
+    </div>
+    <div id="pareto"></div>
+    <p class="note"><strong>How to read it.</strong> The horizontal axis is logarithmic. Cost is what the provider charged to translate the passages a system completed, scaled to 200, and it excludes judging. The local model has no API cost and is drawn at the left edge. For systems that needed several attempts on some passages, the failed attempts are not counted.</p>
+  </div>
+  <details>
+    <summary>Table view: every system with its cost, frontier status and the cheapest system at least as good</summary>
+    <div style="padding:6px 0 16px"><div class="tablewrap" id="value-table"></div>
+    <p class="note"><strong>Cheapest at least as good</strong> names the least expensive system that costs no more and is not significantly worse on shared passages (95%). It is computed for systems scoring above 75. An empty cell means no cheaper system matches it.</p></div>
+  </details>
+</section>
+
+<section id="distribution">
+  <div style="margin-bottom:6px"><p class="eyebrow">04 · Distribution</p><h2>Score spread by system</h2></div>
+  <p class="sub">The spread of each system's per-passage combined scores, in rank order. A short box high on the axis means consistently strong translations. A long left whisker means a few passages went badly.</p>
+  <div class="card">
+    <div class="head"><h3>Per-passage combined score</h3><span class="hint">whisker = min to max · box = 25th to 75th percentile · tick = median</span></div>
+    <div id="boxes"></div>
+  </div>
+</section>
+
+<section id="dimensions">
+  <div style="margin-bottom:6px"><p class="eyebrow">05 · Diagnostics</p><h2>Dimension scores and failure flags</h2></div>
+  <p class="sub">Besides the overall score, each judge scores four dimensions and sets three flags. The table gives each system's mean dimension score over both judges, and the share of its judge scores that carry a flag. A stronger blue is a higher score.</p>
+  <div class="card">
+    <div class="controls"><input id="dim-filter" type="search" placeholder="Filter by system or vendor" aria-label="Filter the dimension table"></div>
+    <div class="tablewrap heat" id="dim-table"></div>
+    <p class="note">The colour scale runs from 70 to the highest value in the table; everything below 70 has the faintest shade. The dimension scores are the judges' own sub-scores, not a recomputation from error lists. <strong>Critical failure</strong>, <strong>omission</strong> and <strong>addition</strong> are judge flags, not human error labels.</p>
+  </div>
+</section>
+
+<section id="judges">
+  <div style="margin-bottom:6px"><p class="eyebrow">06 · Judges</p><h2>How far the two judges agree, and how v1.1 relates to v1</h2></div>
+  <p class="sub">The two judges use the scale differently and still order the systems almost identically. The order of the v1 systems under the new judges is close to their published July order.</p>
+  <div class="grid2">
+    <div class="card">
+      <div class="head"><h3>Judge against judge</h3><span class="hint" id="j-rho"></span></div>
+      <div id="sc-judges"></div>
+      <p class="note" id="j-note"></p>
+    </div>
+    <div class="card">
+      <div class="head"><h3>v1 score against v1.1 score</h3><span class="hint" id="v-rho"></span></div>
+      <div id="sc-v1"></div>
+      <p class="note">Each dot is one of the systems scored in both releases. A dot's distance from the others along either axis reflects the change of judges as well as the system, so read the order, not the level.</p>
+    </div>
+  </div>
+</section>
+
+<section id="method" class="method">
+  <div style="margin-bottom:18px"><p class="eyebrow">07 · Method and limits</p><h2>What was done, and what limits the result</h2></div>
+  <div class="grid2">
+    <div class="card">
+      <h3>Method</h3>
+      <ul>
+        <li><strong>Passages.</strong> The 200 passages of v1, unchanged: 90 from 84000-related sources, 70 from Lotsawa House and 40 locally curated expert translations.</li>
+        <li><strong>Translation.</strong> Each system translated from the Tibetan source alone, under the v1 translation instructions. Reference translations were never sent.</li>
+        <li><strong>Judging.</strong> Each judge read the Tibetan source and one candidate translation, with no reference translation, and returned an overall score from 0 to 100, four dimension scores, three flags and a list of errors.</li>
+        <li><strong>Score.</strong> The two judges' overall scores are averaged per passage, then over passages.</li>
+        <li><strong>Tiers.</strong> Systems are sorted by score. A tier is the leading system plus every system not significantly below it in a paired comparison over shared passages (95%).</li>
+        <li><strong>Cost.</strong> Provider-reported generation cost for completed passages, scaled to 200. Judging cost is excluded.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Limits</h3>
+      <ul>
+        <li><strong>The judges are models.</strong> They can miss source-language detail and reward fluent English. Agreement between them is not proof of correctness.</li>
+        <li><strong>No context.</strong> The judges saw each passage alone. In a separate test on 40 passages, the same judges scored expert reference translations markedly higher once they were given the preceding sentences, so passages that depend on context are probably under-scored here for every system.</li>
+        <li><strong>A judge scores its own family.</strong> <span id="lim-self"></span></li>
+        <li><strong>Not blind.</strong> The judges could see which system produced each translation. A blinding test on a sample moved scores by less than one point.</li>
+        <li><strong>Incomplete systems.</strong> <span id="lim-n"></span> The missing passages are left out of that system's mean, not scored as zero.</li>
+        <li><strong>Cost counts completed passages only.</strong> Systems that ran away on some passages cost more in practice than the figure shown.</li>
+        <li id="lim-argon" hidden><strong>One model appears twice.</strong> Under the request every system received, Gemini 4 Argon used almost no reasoning, unlike the earlier Gemini models. It was therefore also run with high reasoning effort requested, as a second entry. Every other system was run with the default request only.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="files">
+  <div style="margin-bottom:18px"><p class="eyebrow">08 · Files</p><h2>Data and earlier release</h2></div>
+  <div class="card">
+    <p>Every number on this page is read from <code>benchmark_v1_1_data.json</code>, which is published with it. The score-against-cost chart is also available as <code>pareto_frontier_v1_1.png</code>.</p>
+    <p>The v1 release, with its dashboard and technical report, remains at <a href="https://github.com/GregoryForgues/benchmark_Tib_Eng_v.1">github.com/GregoryForgues/benchmark_Tib_Eng_v.1</a>. Source passages and reference translations are not published.</p>
+  </div>
+</section>
+
+</main>
+<footer>Tibetan English Translation Benchmark v1.1 · run <span id="foot-run"></span> · results frozen <span id="foot-date"></span>. A model-judge benchmark for comparison and planning. It does not replace expert review.</footer>
+</div>
+
+<script>
+const D = {"run_id":"v1.1_66x200_20261015","frozen":"2026-10-15","judges":["claude-sonnet-5-5","gpt-6.1-sol"],"dims":["Semantic adequacy","Terminology","Doctrinal precision","Style and register"],"kpi":{"systems":66,"new_systems":31,"v1_systems":35,"passages":200,"outputs_scored":13187,"outputs_expected":13200,"judge_rows":26374,"tiers":18,"spearman_judges":0.982,"spearman_v1":0.99},"systems":[{"key":"openai_gpt_6_1_sol","name":"GPT-6.1 Sol","model":"openai/gpt-6.1-sol","vendor":"OpenAI","local":false,"new":true,"rank":1,"score":91.44,"ci95":0.62,"n":200,"tier":1,"rank_range":"1-4","sonnet":85.14,"sol":97.73,"rank_sonnet":2,"rank_sol":3,"self_excluded":85.14,"self_judged_by":"sol_6_1","cost":0.6619,"v1_rank":null,"v1_score":null,"box":[74.0,89.0,92.5,94.5,98.0],"dims":[92.3,91.4,91.5,92.1],"critical_pct":0.0,"omission_pct":1.2,"addition_pct":1.5,"value_tier":1,"cheaper_as_good":"","frontier":{"all":true,"top5":true},"frontier_cloud":{"all":true,"top5":true}},{"key":"openai_gpt_6_astra","name":"GPT-6 Astra","model":"openai/gpt-6-astra","vendor":"OpenAI","local":false,"new":true,"rank":2,"score":91.43,"ci95":0.64,"n":200,"tier":1,"rank_range":"1-4","sonnet":84.93,"sol":97.92,"rank_sonnet":4,"rank_sol":2,"self_excluded":91.43,"self_judged_by":"","cost":3.2563,"v1_rank":null,"v1_score":null,"box":[75.5,89.0,92.5,94.5,98.5],"dims":[92.3,91.3,91.4,92.3],"critical_pct":0.0,"omission_pct":2.5,"addition_pct":2.2,"value_tier":3,"cheaper_as_good":"GPT-6.1 Sol","frontier":{"all":false,"top5":false},"frontier_cloud":{"all":false,"top5":false}},{"key":"openai_gpt_6_1_sol_pro","name":"GPT-6.1 Sol Pro","model":"openai/gpt-6.1-sol-pro","vendor":"OpenAI","local":false,"new":true,"rank":3,"score":91.28,"ci95":0.64,"n":200,"tier":1,"rank_range":"1-4","sonnet":84.46,"sol":98.09,"rank_sonnet":5,"rank_sol":1,"self_excluded":91.28,"self_judged_by":"","cost":2.347,"v1_rank":null,"v1_score":null,"box":[73.5,89.4,92.5,94.0,98.0],"dims":[92.2,91.2,91.2,92.0],"critical_pct":0.0,"omission_pct":2.0,"addition_pct":1.5,"value_tier":2,"cheaper_as_good":"GPT-6.1 Sol","frontier":{"all":false,"top5":false},"frontier_cloud":{"all":false,"top5":false}},{"key":"google_gemini_3_1_pro_preview","name":"Gemini 3.1 Pro (preview)","model":"google/gemini-3.1-pro-preview","vendor":"Google","local":false,"new":false,"rank":4,"score":91.1,"ci95":0.68,"n":200,"tier":1,"rank_range":"1-5","sonnet":85.58,"sol":96.61,"rank_sonnet":1,"rank_sol":5,"self_excluded":91.1,"self_judged_by":"","cost":4.8557,"v1_rank":1,"v1_score":92.1675,"box":[70.5,88.5,92.5,94.5,98.0],"dims":[92.1,91.0,91.4,90.9],"critical_pct":0.0,"omission_pct":0.5,"addition_pct":1.2,"value_tier":10,"cheaper_as_good":"GPT-6.1 Sol","frontier":{"all":false,"top5":false},"frontier_cloud":{"all":false,"top5":false}},{"key":"openai_gpt_5_5","name":"GPT-5.5","model":"openai/gpt-5.5","vendor":"OpenAI","local":false,"new":false,"rank":5,"score":90.48,"ci95":0.81,"n":200,"tier":2,"rank_range":"4-9","sonnet":85.11,"sol":95.84,"rank_sonnet":3,"rank_sol":8,"self_excluded":90.48,"self_judged_by":"","cost":3.1789,"v1_rank":2,"v1_score":91.7025,"box":[66.5,87.5,92.2,94.5,98.0],"dims":[91.4,90.6,90.6,91.0],"critical_pct":0.0,"omission_pct":1.0,"addition_pct":2.5,"value_tier":9,"cheaper_as_good":"GPT-6.1 Sol","frontier":{"all":false,"top5":false},"frontier_cloud":{"all":false,"top5":false}},{"key":"google_gemini_4_argon_reasoning_high","name":"Gemini 4 Argon (high reasoning)","model":"google/gemini-4-argon","vendor":"Google","local":false,"new":true,"rank":6,"score":90.42,"ci95":0.76,"n":199,"tier":2,"rank_range":"5-9","sonnet":83.96,"sol":96.87,"rank_sonnet":8,"rank_sol":4,"self_excluded":90.42,"self_judged_by":"","cost":3.8822,"v1_rank":null,"v1_score":null,"box":[69.5,88.5,92.0,94.0,98.0],"dims":[91.4,90.5,90.5,90.4],"critical_pct":0.0,"omission_pct":2.0,"addition_pct":2.3,"value_tier":10,"cheaper_as_good":"GPT-6.1 Sol","frontier":{"all":false,"top5":false},"frontier_cloud":{"all":false,"top5":false}},{"key":"google_gemini_3_8_flash","name":"Gemini 3.8 Flash","model":"google/gemini-3.8-flash","vendor":"Google","local":false,"new":true,"rank":7,"score":90.42,"ci95":0.8,"n":200,"tier":2,"rank_range":"5-9","sonnet":84.36,"sol":96.47,"rank_sonnet":6,"rank_sol":6,"self_excluded":90.42,"self_judged_by":"","cost":0.8047,"v1_rank":null,"v1_score":null,"box":[63.0,88.5,92.0,94.0,98.5],"dims":[91.4,90.6,90.6,90.6],"critical_pct":0.0,"omission_pct":2.8,"addition_pct":3.2,"value_tier":2,"cheaper_as_good":"GPT-6.1 Sol","frontier":{"all":false,"top5":false},"frontier_cloud":{"all":false,"top5":false}},{"key":"openai_gpt_6_sol_pro","name":"GPT-6 Sol Pro","model":"openai/gpt-6-sol-pro","vendor":"OpenAI","local":false,"new":true,"rank":8,"score":90.02,"ci95":0.84,"n":200,"tier":2,"rank_range":"6-12","sonnet":83.69,"sol":96.34,"rank_sonnet":11,"rank_sol":7,"self_excluded":90.02,"self_judged_by":"","cost":3.0668,"v1_rank":null,"v1_score":null,"box":[64.0,88.0,92.0,94.0,98.5],"dims":[90.8,90.0,90.0,91.5],"critical_pct":0.0,"omission_pct":2.5,"addition_pct":2.5,"value_tier":8,"cheaper_as_good":"GPT-5.6 Sol","frontier":{"all":false,"top5":false},"frontier_cloud":{"all":false,"top5":false}},{"key":"google_gemini_3_5_flash","name":"Gemini 3.5 Flash","model":"google/gemini-3.5-flash","vendor":"Google","local":false,"new":false,"rank":9,"score":89.96,"ci95":0.84,"n":200,"tier":2,"rank_range":"6-12","sonnet":84.34,"sol":95.58,"rank_sonnet":7,"rank_sol":10,"self_excluded":89.96,"self_judged_by":"","cost":2.2724,"v1_rank":4,"v1_score":91.5325,"box":[67.0,87.9,92.0,94.0,98.0],"dims":[90.9,89.8,90.0,90.5],"critical_pct":0.0,"omission_pct":3.0,"addition_pct":3.2,"value_tier":6,"cheaper_as_good":"GPT-5.6 Sol","frontier":{"all":false,"top5":false},"frontier_cloud":{"all":false,"top5":false}},{"key":"openai_gpt_6_sol","name":"GPT-6 Sol","model":"openai/gpt-6-sol","vendor":"OpenAI","local":false,"new":true,"rank":10,"score":89.49,"ci95":0.95,"n":200,"tier":3,"rank_range":"9-14","sonnet":83.38,"sol":95.59,"rank_sonnet":12,"rank_sol":9,"self_excluded":89.49,"self_judged_by":"","cost":0.878,"v1_rank":null,"v1_score":null,"box":[63.0,87.5,91.5,94.0,98.0],"dims":[90.3,89.4,89.5,91.2],"critical_pct":0.0,"omission_pct":3.5,"addition_pct":3.0,"value_tier":4,"cheaper_as_good":"Gemini 4 Argon (default)","frontier":{"all":false,"top5":false},"frontier_cloud":{"all":false,"top5":false}},{"key":"anthropic_claude_opus_5_5","name":"Claude Opus 5.5","model":"anthropic/claude-opus-5.5","vendor":"Anthropic","local":false,"new":true,"rank":11,"score":89.46,"ci95":1.14,"n":200,"tier":3,"rank_range":"7-15","sonnet":83.86,"sol":95.06,"rank_sonnet":10,"rank_sol":13,"self_excluded":89.46,"self_judged_by":"","cost":1.2007,"v1_rank":null,"v1_score":null,"box":[31.5,88.0,92.0,94.0,98.5],"dims":[90.1,90.2,89.9,90.4],"critical_pct":0.5,"omission_pct":3.2,"addition_pct":6.2,"value_tier":5,"cheaper_as_good":"Gemini 4 Argon (default)","frontier":{"all":false,"top5":false},"frontier_cloud":{"all":false,"top5":false}},{"key":"anthropic_claude_fable_5_1","name":"Claude Fable 5.1","model":"anthropic/claude-fable-5.1","vendor":"Anthropic","local":false,"new":true,"rank":12,"score":89.41,"ci95":1.05,"n":199,"tier":3,"rank_range":"8-15","sonnet":83.87,"sol":94.96,"rank_sonnet":9,"rank_sol":14,"self_excluded":89.41,"self_judged_by":"","cost":2.9745,"v1_rank":null,"v1_score":null,"box":[41.0,87.8,91.5,94.0,98.0],"dims":[90.4,89.4,89.8,90.1],"critical_pct":0.3,"omission_pct":2.3,"addition_pct":4.8,"value_tier":7,"cheaper_as_good":"Gemini 4 Argon (default)","frontier":{"all":false,"top5":false},"frontier_cloud":{"all":false,"top5":false}},{"key":"openai_gpt_5_6_sol","name":"GPT-5.6 Sol","model":"openai/gpt-5.6-sol","vendor":"OpenAI","local":false,"new":true,"rank":13,"score":89.22,"ci95":0.98,"n":200,"tier":3,"rank_range":"9-16","sonnet":83.09,"sol":95.36,"rank_sonnet":14,"rank_sol":12,"self_excluded":89.22,"self_judged_by":"","cost":0.6403,"v1_rank":null,"v1_score":null,"box":[55.0,87.0,91.2,93.6,98.0],"dims":[89.9,89.5,89.4,91.3],"critical_pct":0.0,"omission_pct":1.0,"addition_pct":2.2,"value_tier":2,"cheaper_as_good":"Gemini 4 Argon (default)","frontier":{"all":true,"top5":true},"frontier_cloud":{"all":true,"top5":true}},{"key":"google_gemini_4_argon","name":"Gemini 4 Argon (default)","model":"google/gemini-4-argon","vendor":"Google","local":false,"new":true,"rank":14,"score":88.8,"ci95":0.97,"n":199,"tier":3,"rank_range":"11-17","sonnet":82.14,"sol":95.47,"rank_sonnet":18,"rank_sol":11,"self_excluded":88.8,"self_judged_by":"","cost":0.2311,"v1_rank":null,"v1_score":null,"box":[58.0,86.5,91.0,93.5,98.5],"dims":[89.7,89.3,88.9,88.9],"critical_pct":0.0,"omission_pct":2.8,"addition_pct":5.8,"value_tier":1,"cheaper_as_good":"","frontier":{"all":true,"top5":true},"frontier_cloud":{"all":true,"top5":true}},{"key":"anthropic_claude_opus_4_7","name":"Claude Opus 4.7","model":"anthropic/claude-opus-4.7","vendor":"Anthropic","local":false,"new":false,"rank":15,"score":88.72,"ci95":1.17,"n":200,"tier":3,"rank_range":"11-18","sonnet":83.2,"sol":94.25,"rank_sonnet":13,"rank_sol":16,"self_excluded":88.72,"self_judged_by":"","cost":0.8132,"v1_rank":3,"v1_score":91.57,"box":[43.0,86.4,91.5,94.0,98.0],"dims":[89.5,89.2,88.9,89.8],"critical_pct":0.2,"omission_pct":1.8,"addition_pct":3.2,"value_tier":3,"cheaper_as_good":"Gemini 4 Argon (default)","frontier":{"all":false,"top5":false},"frontier_cloud":{"all":false,"top5":false}},{"key":"google_gemini_2_5_pro","name":"Gemini 2.5 Pro","model":"google/gemini-2.5-pro","vendor":"Google","local":false,"new":false,"rank":16,"score":88.31,"ci95":1.05,"n":200,"tier":4,"rank_range":"13-19","sonnet":82.14,"sol":94.47,"rank_sonnet":17,"rank_sol":15,"self_excluded":88.31,"self_judged_by":"","cost":6.295,"v1_rank":6,"v1_score":90.4925,"box":[57.0,85.5,91.0,93.0,98.0],"dims":[89.2,88.5,88.6,89.0],"critical_pct":0.0,"omission_pct":2.0,"addition_pct":3.8,"value_tier":13,"cheaper_as_good":"Mitra Qwen3.5 Translate (9B, local)","frontier":{"all":false,"top5":false},"frontier_cloud":{"all":false,"top5":false}},{"key":"meta_muse_wonder","name":"Muse Wonder","model":"meta/muse-wonder","vendor":"Meta","local":false,"new":true,"rank":17,"score":87.91,"ci95":1.08,"n":200,"tier":4,"rank_range":"15-21","sonnet":82.19,"sol":93.64,"rank_sonnet":16,"rank_sol":18,"self_excluded":87.91,"self_judged_by":"","cost":4.5239,"v1_rank":null,"v1_score":null,"box":[51.5,84.4,90.2,93.0,98.0],"dims":[88.7,88.1,88.2,88.4],"critical_pct":0.0,"omission_pct":2.2,"addition_pct":3.0,"value_tier":12,"cheaper_as_good":"Mitra Qwen3.5 Translate (9B, local)","frontier":{"all":false,"top5":false},"frontier_cloud":{"all":false,"top5":false}},{"key":"x_ai_grok_4_7","name":"Grok 4.7","model":"x-ai/grok-4.7","vendor":"xAI","local":false,"new":true,"rank":18,"score":87.86,"ci95":1.24,"n":200,"tier":4,"rank_range":"14-21","sonnet":82.34,"sol":93.38,"rank_sonnet":15,"rank_sol":20,"self_excluded":87.86,"self_judged_by":"","cost":2.6278,"v1_rank":null,"v1_score":null,"box":[55.5,84.4,91.0,94.0,98.0],"dims":[88.7,88.0,87.9,88.8],"critical_pct":0.0,"omission_pct":2.5,"addition_pct":3.8,"value_tier":11,"cheaper_as_good":"Mitra Qwen3.5 Translate (9B, local)","frontier":{"all":false,"top5":false},"frontier_cloud":{"all":false,"top5":false}},{"key":"buddhist_nlp_mitra_qwen35_translate_closedbook_v1","name":"Mitra Qwen3.5 Translate (9B, local)","model":"buddhist-nlp/mitra-qwen35-translate","vendor":"Dharmamitra","local":true,"new":true,"rank":19,"score":87.51,"ci95":1.17,"n":200,"tier":4,"rank_range":"16-23","sonnet":81.28,"sol":93.73,"rank_sonnet":20,"rank_sol":17,"self_excluded":87.51,"self_judged_by":"","cost":0.0,"v1_rank":null,"v1_score":null,"box":[45.0,83.0,90.5,93.5,98.0],"dims":[88.2,88.2,87.8,89.0],"critical_pct":0.2,"omission_pct":4.5,"addition_pct":7.5,"value_tier":1,"cheaper_as_good":"","frontier":{"all":true,"top5":true},"frontier_cloud":{"all":false,"top5":false}},{"key":"anthropic_claude_opus_4_8","name":"Claude Opus 4.8","model":"anthropic/claude-opus-4.8","vendor":"Anthropic","local":false,"new":false,"rank":20,"score":87.18,"ci95":1.31,"n":200,"tier":5,"rank_range":"17-26","sonnet":81.62,"sol":92.74,"rank_sonnet":19,"rank_sol":23,"self_excluded":87.18,"self_judged_by":"","cost":0.8029,"v1_rank":5,"v1_score":90.8675,"box":[39.0,83.0,90.5,94.0,98.0],"dims":[87.8,88.1,87.5,88.4],"critical_pct":0.2,"omission_pct":3.2,"addition_pct":5.2,"value_tier":9,"cheaper_as_good":"Mitra Qwen3.5 Translate (9B, local)","frontier":{"all":false,"top5":false},"frontier_cloud":{"all":false,"top5":false}},{"key":"z_ai_glm_5_3_flash","name":"GLM 5.3 Flash","model":"z-ai/glm-5.3-flash","vendor":"Z.ai","local":false,"new":true,"rank":21,"score":87.1,"ci95":1.08,"n":194,"tier":5,"rank_range":"18-25","sonnet":80.72,"sol":93.48,"rank_sonnet":23,"rank_sol":19,"self_excluded":87.1,"self_judged_by":"","cost":0.8507,"v1_rank":null,"v1_score":null,"box":[56.5,83.0,89.0,93.0,98.0],"dims":[88.0,87.1,87.2,88.4],"critical_pct":0.0,"omission_pct":2.1,"addition_pct":3.4,"value_tier":10,"cheaper_as_good":"Mitra Qwen3.5 Translate (9B, local)","frontier":{"all":false,"top5":false},"frontier_cloud":{"all":false,"top5":false}},{"key":"google_gemini_3_flash_preview","name":"Gemini 3 Flash (preview)","model":"google/gemini-3-flash-preview","vendor":"Google","local":false,"new":false,"rank":22,"score":86.82,"ci95":1.16,"n":200,"tier":5,"rank_range":"19-29","sonnet":80.5,"sol":93.14,"rank_sonnet":25,"rank_sol":21,"self_excluded":86.82,"self_judged_by":"","cost":0.053,"v1_rank":7,"v1_score":90.4825,"box":[53.5,82.8,89.2,93.0,98.0],"dims":[87.6,86.6,86.9,89.0],"critical_pct":0.2,"omission_pct":4.8,"addition_pct":5.5,"value_tier":3,"cheaper_as_good":"Mitra Qwen3.5 Translate (9B, local)","frontier":{"all":false,"top5":false},"frontier_cloud":{"all":true,"top5":true}},{"key":"x_ai_grok_4_6","name":"Grok 4.6","model":"x-ai/grok-4.6","vendor":"xAI","local":false,"new":true,"rank":23,"score":86.44,"ci95":1.29,"n":200,"tier":5,"rank_range":"20-31","sonnet":80.83,"sol":92.03,"rank_sonnet":22,"rank_sol":28,"self_excluded":86.44,"self_judged_by":"","cost":2.6439,"v1_rank":null,"v1_score":null,"box":[50.5,81.5,89.8,93.0,98.0],"dims":[87.3,87.0,86.7,86.2],"critical_pct":0.0,"omission_pct":1.8,"addition_pct":3.0,"value_tier":17,"cheaper_as_good":"Mitra Qwen3.5 Translate (9B, local)","frontier":{"all":false,"top5":false},"frontier_cloud":{"all":false,"top5":false}},{"key":"openai_gpt_5_6_terra","name":"GPT-5.6 Terra","model":"openai/gpt-5.6-terra","vendor":"OpenAI","local":false,"new":true,"rank":24,"score":86.35,"ci95":1.33,"n":200,"tier":5,"rank_range":"20-33","sonnet":79.92,"sol":92.78,"rank_sonnet":28,"rank_sol":22,"self_excluded":86.35,"self_judged_by":"","cost":0.6497,"v1_rank":null,"v1_score":null,"box":[54.0,82.9,89.0,93.0,98.0],"dims":[86.9,86.7,86.9,89.4],"critical_pct":0.0,"omission_pct":5.0,"addition_pct":4.0,"value_tier":8,"cheaper_as_good":"Mitra Qwen3.5 Translate (9B, local)","frontier":{"all":false,"top5":false},"frontier_cloud":{"all":false,"top5":false}},{"key":"meta_muse_spark_open","name":"Muse Spark Open","model":"meta/muse-spark-open","vendor":"Meta","local":false,"new":true,"rank":25,"score":86.28,"ci95":1.43,"n":200,"tier":5,"rank_range":"20-34","sonnet":80.03,"sol":92.53,"rank_sonnet":27,"rank_sol":25,"self_excluded":86.28,"self_judged_by":"","cost":1.1505,"v1_rank":null,"v1_score":null,"box":[13.0,82.9,89.0,93.0,98.0],"dims":[87.0,86.6,86.4,87.1],"critical_pct":0.8,"omission_pct":5.0,"addition_pct":4.8,"value_tier":13,"cheaper_as_good":"Mitra Qwen3.5 Translate (9B, local)","frontier":{"all":false,"top5":false},"frontier_cloud":{"all":false,"top5":false}},{"key":"openai_gpt_6_luna","name":"GPT-6 Luna","model":"openai/gpt-6-luna","vendor":"OpenAI","local":false,"new":true,"rank":26,"score":86.23,"ci95":1.33,"n":200,"tier":5,"rank_range":"21-34","sonnet":80.55,"sol":91.92,"rank_sonnet":24,"rank_sol":30,"self_excluded":86.23,"self_judged_by":"","cost":0.0523,"v1_rank":null,"v1_score":null,"box":[45.0,81.9,89.0,93.0,98.5],"dims":[86.5,86.8,86.3,89.8],"critical_pct":0.2,"omission_pct":4.5,"addition_pct":7.0,"value_tier":2,"cheaper_as_good":"Mitra Qwen3.5 Translate (9B, local)","frontier":{"all":false,"top5":false},"frontier_cloud":{"all":true,"top5":true}},{"key":"moonshotai_kimi_k3","name":"Kimi K3","model":"moonshotai/kimi-k3","vendor":"Moonshot","local":false,"new":true,"rank":27,"score":86.16,"ci95":1.5,"n":200,"tier":5,"rank_range":"20-35","sonnet":80.28,"sol":92.03,"rank_sonnet":26,"rank_sol":27,"self_excluded":86.16,"self_judged_by":"","cost":6.702,"v1_rank":null,"v1_score":null,"box":[27.0,82.5,90.0,93.0,97.5],"dims":[86.6,87.0,86.6,88.4],"critical_pct":0.2,"omission_pct":3.5,"addition_pct":5.0,"value_tier":19,"cheaper_as_good":"Mitra Qwen3.5 Translate (9B, local)","frontier":{"all":false,"top5":false},"frontier_cloud":{"all":false,"top5":false}},{"key":"openai_gpt_5_6_luna","name":"GPT-5.6 Luna","model":"openai/gpt-5.6-luna","vendor":"OpenAI","local":false,"new":true,"rank":28,"score":85.97,"ci95":1.32,"n":200,"tier":5,"rank_range":"22-35","sonnet":79.83,"sol":92.12,"rank_sonnet":29,"rank_sol":26,"self_excluded":85.97,"self_judged_by":"","cost":0.105,"v1_rank":null,"v1_score":null,"box":[56.5,80.9,89.0,93.0,98.0],"dims":[86.4,86.2,86.2,88.9],"critical_pct":0.0,"omission_pct":5.2,"addition_pct":4.5,"value_tier":4,"cheaper_as_good":"Mitra Qwen3.5 Translate (9B, local)","frontier":{"all":false,"top5":false},"frontier_cloud":{"all":false,"top5":false}},{"key":"meta_muse_spark_1_3","name":"Muse Spark 1.3","model":"meta/muse-spark-1.3","vendor":"Meta","local":false,"new":true,"rank":29,"score":85.97,"ci95":1.38,"n":200,"tier":5,"rank_range":"22-36","sonnet":79.28,"sol":92.66,"rank_sonnet":30,"rank_sol":24,"self_excluded":85.97,"self_judged_by":"","cost":1.1146,"v1_rank":null,"v1_score":null,"box":[46.5,82.0,89.0,92.5,97.5],"dims":[86.8,86.6,86.4,87.1],"critical_pct":0.0,"omission_pct":3.5,"addition_pct":6.2,"value_tier":11,"cheaper_as_good":"Mitra Qwen3.5 Translate (9B, local)","frontier":{"all":false,"top5":false},"frontier_cloud":{"all":false,"top5":false}},{"key":"anthropic_claude_sonnet_5_5","name":"Claude Sonnet 5.5","model":"anthropic/claude-sonnet-5.5","vendor":"Anthropic","local":false,"new":true,"rank":30,"score":85.84,"ci95":1.54,"n":199,"tier":6,"rank_range":"22-37","sonnet":80.99,"sol":90.68,"rank_sonnet":21,"rank_sol":38,"self_excluded":90.68,"self_judged_by":"sonnet_5_5","cost":0.5022,"v1_rank":null,"v1_score":null,"box":[35.0,81.5,90.0,93.0,98.0],"dims":[86.3,86.6,86.2,88.4],"critical_pct":0.5,"omission_pct":3.0,"addition_pct":9.8,"value_tier":6,"cheaper_as_good":"Mitra Qwen3.5 Translate (9B, local)","frontier":{"all":false},"frontier_cloud":{"all":false}},{"key":"z_ai_glm_5_1","name":"GLM 5.1","model":"z-ai/glm-5.1","vendor":"Z.ai","local":false,"new":false,"rank":31,"score":85.53,"ci95":1.39,"n":200,"tier":6,"rank_range":"26-37","sonnet":79.05,"sol":92.02,"rank_sonnet":34,"rank_sol":29,"self_excluded":85.53,"self_judged_by":"","cost":2.3947,"v1_rank":10,"v1_score":89.2875,"box":[46.5,80.8,88.5,92.5,98.0],"dims":[86.4,85.6,85.9,86.5],"critical_pct":0.0,"omission_pct":3.8,"addition_pct":4.8,"value_tier":16,"cheaper_as_good":"Mitra Qwen3.5 Translate (9B, local)","frontier":{"all":false},"frontier_cloud":{"all":false}},{"key":"z_ai_glm_5_2","name":"GLM 5.2","model":"z-ai/glm-5.2","vendor":"Z.ai","local":false,"new":false,"rank":32,"score":85.49,"ci95":1.4,"n":200,"tier":6,"rank_range":"25-38","sonnet":79.23,"sol":91.75,"rank_sonnet":31,"rank_sol":31,"self_excluded":85.49,"self_judged_by":"","cost":1.9363,"v1_rank":11,"v1_score":89.195,"box":[48.5,80.0,89.0,93.0,98.0],"dims":[86.4,85.6,86.0,86.2],"critical_pct":0.0,"omission_pct":4.0,"addition_pct":3.5,"value_tier":15,"cheaper_as_good":"Mitra Qwen3.5 Translate (9B, local)","frontier":{"all":false},"frontier_cloud":{"all":false}},{"key":"moonshotai_kimi_k2_6","name":"Kimi K2.6","model":"moonshotai/kimi-k2.6","vendor":"Moonshot","local":false,"new":false,"rank":33,"score":85.31,"ci95":1.44,"n":200,"tier":6,"rank_range":"26-39","sonnet":79.14,"sol":91.48,"rank_sonnet":32,"rank_sol":33,"self_excluded":85.31,"self_judged_by":"","cost":3.0462,"v1_rank":12,"v1_score":89.17,"box":[49.0,81.0,87.8,92.5,98.0],"dims":[85.9,85.5,85.7,87.7],"critical_pct":0.0,"omission_pct":4.5,"addition_pct":8.0,"value_tier":18,"cheaper_as_good":"Mitra Qwen3.5 Translate (9B, local)","frontier":{"all":false},"frontier_cloud":{"all":false}},{"key":"anthropic_claude_sonnet_5","name":"Claude Sonnet 5","model":"anthropic/claude-sonnet-5","vendor":"Anthropic","local":false,"new":false,"rank":34,"score":85.28,"ci95":1.48,"n":200,"tier":6,"rank_range":"26-39","sonnet":79.11,"sol":91.44,"rank_sonnet":33,"rank_sol":34,"self_excluded":85.28,"self_judged_by":"","cost":0.6271,"v1_rank":8,"v1_score":89.76,"box":[36.0,80.0,89.0,92.6,98.0],"dims":[85.8,85.7,85.8,87.4],"critical_pct":0.2,"omission_pct":5.2,"addition_pct":10.0,"value_tier":7,"cheaper_as_good":"Mitra Qwen3.5 Translate (9B, local)","frontier":{"all":false},"frontier_cloud":{"all":false}},{"key":"qwen_qwen3_7_max","name":"Qwen3.7 Max","model":"qwen/qwen3.7-max","vendor":"Alibaba","local":false,"new":false,"rank":35,"score":84.99,"ci95":1.45,"n":200,"tier":6,"rank_range":"29-40","sonnet":78.4,"sol":91.58,"rank_sonnet":38,"rank_sol":32,"self_excluded":84.99,"self_judged_by":"","cost":1.116,"v1_rank":9,"v1_score":89.5075,"box":[49.5,78.4,88.2,93.0,98.5],"dims":[85.3,85.5,85.2,88.5],"critical_pct":0.0,"omission_pct":6.0,"addition_pct":8.8,"value_tier":12,"cheaper_as_good":"Mitra Qwen3.5 Translate (9B, local)","frontier":{"all":false},"frontier_cloud":{"all":false}},{"key":"qwen_qwen3_8_max_0902","name":"Qwen3.8 Max","model":"qwen/qwen3.8-max-0902","vendor":"Alibaba","local":false,"new":true,"rank":36,"score":84.88,"ci95":1.45,"n":200,"tier":6,"rank_range":"28-41","sonnet":78.55,"sol":91.22,"rank_sonnet":37,"rank_sol":35,"self_excluded":84.88,"self_judged_by":"","cost":8.3289,"v1_rank":null,"v1_score":null,"box":[40.0,80.0,88.0,92.5,97.5],"dims":[85.4,85.1,85.1,87.9],"critical_pct":0.0,"omission_pct":5.8,"addition_pct":6.0,"value_tier":21,"cheaper_as_good":"Mitra Qwen3.5 Translate (9B, local)","frontier":{"all":false},"frontier_cloud":{"all":false}},{"key":"anthropic_claude_opus_4_5","name":"Claude Opus 4.5","model":"anthropic/claude-opus-4.5","vendor":"Anthropic","local":false,"new":false,"rank":37,"score":84.83,"ci95":1.56,"n":200,"tier":6,"rank_range":"29-41","sonnet":79.0,"sol":90.66,"rank_sonnet":35,"rank_sol":39,"self_excluded":84.83,"self_judged_by":"","cost":0.6527,"v1_rank":16,"v1_score":88.4175,"box":[24.0,80.9,88.2,92.5,98.0],"dims":[85.3,85.6,85.7,87.7],"critical_pct":0.5,"omission_pct":3.8,"addition_pct":7.5,"value_tier":9,"cheaper_as_good":"Mitra Qwen3.5 Translate (9B, local)","frontier":{"all":false},"frontier_cloud":{"all":false}},{"key":"openai_gpt_5_4","name":"GPT-5.4","model":"openai/gpt-5.4","vendor":"OpenAI","local":false,"new":false,"rank":38,"score":84.81,"ci95":1.51,"n":200,"tier":6,"rank_range":"30-41","sonnet":78.78,"sol":90.85,"rank_sonnet":36,"rank_sol":36,"self_excluded":84.81,"self_judged_by":"","cost":0.3598,"v1_rank":14,"v1_score":88.8325,"box":[42.0,80.4,88.5,92.5,98.0],"dims":[85.4,85.2,85.3,87.1],"critical_pct":0.2,"omission_pct":5.8,"addition_pct":5.2,"value_tier":5,"cheaper_as_good":"Mitra Qwen3.5 Translate (9B, local)","frontier":{"all":false},"frontier_cloud":{"all":false}},{"key":"moonshotai_kimi_k2_7_code","name":"Kimi K2.7 Code","model":"moonshotai/kimi-k2.7-code","vendor":"Moonshot","local":false,"new":false,"rank":39,"score":84.52,"ci95":1.52,"n":200,"tier":6,"rank_range":"32-42","sonnet":78.25,"sol":90.8,"rank_sonnet":39,"rank_sol":37,"self_excluded":84.52,"self_judged_by":"","cost":1.3172,"v1_rank":15,"v1_score":88.7525,"box":[47.0,78.4,88.5,93.0,98.0],"dims":[84.9,84.8,85.1,87.6],"critical_pct":0.0,"omission_pct":7.2,"addition_pct":8.2,"value_tier":14,"cheaper_as_good":"Mitra Qwen3.5 Translate (9B, local)","frontier":{"all":false},"frontier_cloud":{"all":false}},{"key":"tencent_hy4_preview","name":"Hy4 (preview)","model":"tencent/hy4-preview","vendor":"Tencent","local":false,"new":true,"rank":40,"score":83.92,"ci95":1.75,"n":199,"tier":7,"rank_range":"35-45","sonnet":77.39,"sol":90.46,"rank_sonnet":40,"rank_sol":41,"self_excluded":83.92,"self_judged_by":"","cost":9.373,"v1_rank":null,"v1_score":null,"box":[25.0,79.5,88.0,92.5,98.0],"dims":[84.7,84.8,84.2,86.2],"critical_pct":0.8,"omission_pct":8.3,"addition_pct":6.8,"value_tier":22,"cheaper_as_good":"Mitra Qwen3.5 Translate (9B, local)","frontier":{"all":false},"frontier_cloud":{"all":false}},{"key":"qwen_qwen3_8_2_4t_a95b","name":"Qwen3.8 2.4T","model":"qwen/qwen3.8-2.4t-a95b","vendor":"Alibaba","local":false,"new":true,"rank":41,"score":83.82,"ci95":1.56,"n":200,"tier":7,"rank_range":"36-44","sonnet":77.12,"sol":90.51,"rank_sonnet":43,"rank_sol":40,"self_excluded":83.82,"self_judged_by":"","cost":8.0756,"v1_rank":null,"v1_score":null,"box":[21.5,77.4,87.0,92.1,98.0],"dims":[84.2,84.6,84.1,87.1],"critical_pct":0.5,"omission_pct":4.8,"addition_pct":8.5,"value_tier":20,"cheaper_as_good":"Mitra Qwen3.5 Translate (9B, local)","frontier":{"all":false},"frontier_cloud":{"all":false}},{"key":"deepseek_deepseek_flash_latest","name":"DeepSeek Flash (latest)","model":"deepseek/deepseek-flash-latest","vendor":"DeepSeek","local":false,"new":true,"rank":42,"score":83.5,"ci95":1.75,"n":200,"tier":7,"rank_range":"38-45","sonnet":77.19,"sol":89.8,"rank_sonnet":41,"rank_sol":43,"self_excluded":83.5,"self_judged_by":"","cost":1.0602,"v1_rank":null,"v1_score":null,"box":[24.0,77.5,87.5,93.0,98.5],"dims":[84.1,84.1,84.0,85.8],"critical_pct":0.8,"omission_pct":4.5,"addition_pct":5.0,"value_tier":11,"cheaper_as_good":"Mitra Qwen3.5 Translate (9B, local)","frontier":{"all":false},"frontier_cloud":{"all":false}},{"key":"google_gemini_3_1_flash_lite_preview","name":"Gemini 3.1 Flash Lite (preview)","model":"google/gemini-3.1-flash-lite-preview","vendor":"Google","local":false,"new":false,"rank":43,"score":83.48,"ci95":1.62,"n":200,"tier":7,"rank_range":"38-45","sonnet":77.14,"sol":89.81,"rank_sonnet":42,"rank_sol":42,"self_excluded":83.48,"self_judged_by":"","cost":0.0264,"v1_rank":13,"v1_score":88.9725,"box":[37.0,78.5,86.5,92.0,98.0],"dims":[83.7,83.7,83.3,87.6],"critical_pct":0.5,"omission_pct":11.0,"addition_pct":10.5,"value_tier":2,"cheaper_as_good":"Mitra Qwen3.5 Translate (9B, local)","frontier":{"all":false},"frontier_cloud":{"all":true}},{"key":"x_ai_grok_4_3","name":"Grok 4.3","model":"x-ai/grok-4.3","vendor":"xAI","local":false,"new":false,"rank":44,"score":82.63,"ci95":1.59,"n":200,"tier":7,"rank_range":"41-47","sonnet":75.67,"sol":89.59,"rank_sonnet":44,"rank_sol":44,"self_excluded":82.63,"self_judged_by":"","cost":0.4724,"v1_rank":18,"v1_score":87.6175,"box":[35.0,76.5,85.0,91.5,98.0],"dims":[83.0,83.5,83.2,84.6],"critical_pct":0.2,"omission_pct":6.0,"addition_pct":4.8,"value_tier":8,"cheaper_as_good":"Mitra Qwen3.5 Translate (9B, local)","frontier":{"all":false},"frontier_cloud":{"all":false}},{"key":"z_ai_glm_5_3","name":"GLM 5.3","model":"z-ai/glm-5.3","vendor":"Z.ai","local":false,"new":true,"rank":45,"score":82.41,"ci95":1.85,"n":200,"tier":7,"rank_range":"41-48","sonnet":75.37,"sol":89.45,"rank_sonnet":45,"rank_sol":45,"self_excluded":82.41,"self_judged_by":"","cost":3.3536,"v1_rank":null,"v1_score":null,"box":[22.5,75.0,87.0,92.5,97.5],"dims":[82.8,82.7,83.0,85.9],"critical_pct":0.8,"omission_pct":11.0,"addition_pct":14.0,"value_tier":19,"cheaper_as_good":"Mitra Qwen3.5 Translate (9B, local)","frontier":{"all":false},"frontier_cloud":{"all":false}},{"key":"anthropic_claude_sonnet_4_6_prompt_v1_3_strategy","name":"Claude Sonnet 4.6 (prompt v1.3)","model":"anthropic/claude-sonnet-4.6","vendor":"Anthropic","local":false,"new":false,"rank":46,"score":81.78,"ci95":1.85,"n":200,"tier":8,"rank_range":"44-49","sonnet":75.07,"sol":88.48,"rank_sonnet":46,"rank_sol":46,"self_excluded":81.78,"self_judged_by":"","cost":0.5571,"v1_rank":17,"v1_score":87.845,"box":[27.5,74.0,87.0,91.5,98.0],"dims":[81.8,82.6,82.1,86.7],"critical_pct":0.5,"omission_pct":9.2,"addition_pct":15.5,"value_tier":9,"cheaper_as_good":"Mitra Qwen3.5 Translate (9B, local)","frontier":{"all":false},"frontier_cloud":{"all":false}},{"key":"deepseek_deepseek_v4_pro","name":"DeepSeek V4 Pro","model":"deepseek/deepseek-v4-pro","vendor":"DeepSeek","local":false,"new":false,"rank":47,"score":81.4,"ci95":1.87,"n":200,"tier":8,"rank_range":"44-50","sonnet":75.03,"sol":87.77,"rank_sonnet":48,"rank_sol":48,"self_excluded":81.4,"self_judged_by":"","cost":0.7081,"v1_rank":20,"v1_score":86.7275,"box":[24.0,75.0,85.0,92.0,98.0],"dims":[81.3,82.4,81.7,85.7],"critical_pct":0.8,"omission_pct":11.8,"addition_pct":9.2,"value_tier":10,"cheaper_as_good":"Mitra Qwen3.5 Translate (9B, local)","frontier":{"all":false},"frontier_cloud":{"all":false}},{"key":"anthropic_claude_sonnet_4_6","name":"Claude Sonnet 4.6","model":"anthropic/claude-sonnet-4.6","vendor":"Anthropic","local":false,"new":false,"rank":48,"score":81.1,"ci95":2.27,"n":200,"tier":8,"rank_range":"44-52","sonnet":75.03,"sol":87.17,"rank_sonnet":47,"rank_sol":50,"self_excluded":81.1,"self_judged_by":"","cost":0.4277,"v1_rank":22,"v1_score":86.42,"box":[7.5,75.2,87.0,91.5,97.5],"dims":[81.2,83.0,81.8,86.1],"critical_pct":2.8,"omission_pct":8.0,"addition_pct":13.2,"value_tier":7,"cheaper_as_good":"Mitra Qwen3.5 Translate (9B, local)","frontier":{"all":false},"frontier_cloud":{"all":false}},{"key":"qwen_qwen3_6_plus","name":"Qwen3.6 Plus","model":"qwen/qwen3.6-plus","vendor":"Alibaba","local":false,"new":false,"rank":49,"score":80.81,"ci95":1.71,"n":200,"tier":8,"rank_range":"46-51","sonnet":73.72,"sol":87.91,"rank_sonnet":49,"rank_sol":47,"self_excluded":80.81,"self_judged_by":"","cost":1.6045,"v1_rank":19,"v1_score":87.1125,"box":[35.0,73.5,83.5,90.5,98.0],"dims":[80.7,81.2,81.1,86.1],"critical_pct":0.5,"omission_pct":12.8,"addition_pct":13.5,"value_tier":15,"cheaper_as_good":"Mitra Qwen3.5 Translate (9B, local)","frontier":{"all":false},"frontier_cloud":{"all":false}},{"key":"openai_gpt_5_4_mini","name":"GPT-5.4 mini","model":"openai/gpt-5.4-mini","vendor":"OpenAI","local":false,"new":false,"rank":50,"score":80.44,"ci95":1.71,"n":200,"tier":8,"rank_range":"47-52","sonnet":73.62,"sol":87.27,"rank_sonnet":50,"rank_sol":49,"self_excluded":80.44,"self_judged_by":"","cost":0.1064,"v1_rank":23,"v1_score":86.2725,"box":[40.0,71.9,82.8,90.5,98.0],"dims":[80.6,81.3,80.7,84.5],"critical_pct":0.0,"omission_pct":11.5,"addition_pct":8.5,"value_tier":5,"cheaper_as_good":"Mitra Qwen3.5 Translate (9B, local)","frontier":{"all":false},"frontier_cloud":{"all":false}},{"key":"qwen_qwen3_7_plus","name":"Qwen3.7 Plus","model":"qwen/qwen3.7-plus","vendor":"Alibaba","local":false,"new":false,"rank":51,"score":79.68,"ci95":1.79,"n":200,"tier":9,"rank_range":"49-52","sonnet":72.26,"sol":87.09,"rank_sonnet":51,"rank_sol":51,"self_excluded":79.68,"self_judged_by":"","cost":0.4169,"v1_rank":21,"v1_score":86.6975,"box":[31.5,71.8,82.5,90.5,98.0],"dims":[79.3,80.9,79.7,85.6],"critical_pct":0.2,"omission_pct":10.0,"addition_pct":15.5,"value_tier":6,"cheaper_as_good":"Mitra Qwen3.5 Translate (9B, local)","frontier":{"all":false},"frontier_cloud":{"all":false}},{"key":"qwen_qwen3_8_omni_flash","name":"Qwen3.8 Omni Flash","model":"qwen/qwen3.8-omni-flash","vendor":"Alibaba","local":false,"new":true,"rank":52,"score":78.98,"ci95":1.96,"n":198,"tier":9,"rank_range":"50-53","sonnet":71.34,"sol":86.63,"rank_sonnet":52,"rank_sol":52,"self_excluded":78.98,"self_judged_by":"","cost":0.8535,"v1_rank":null,"v1_score":null,"box":[21.0,70.6,83.0,90.4,97.5],"dims":[79.2,78.5,79.2,84.8],"critical_pct":0.5,"omission_pct":7.8,"addition_pct":8.6,"value_tier":11,"cheaper_as_good":"Mitra Qwen3.5 Translate (9B, local)","frontier":{"all":false},"frontier_cloud":{"all":false}},{"key":"tencent_hy3_preview","name":"Hy3 (preview)","model":"tencent/hy3-preview","vendor":"Tencent","local":false,"new":false,"rank":53,"score":77.6,"ci95":1.99,"n":200,"tier":10,"rank_range":"52-55","sonnet":69.95,"sol":85.24,"rank_sonnet":54,"rank_sol":53,"self_excluded":77.6,"self_judged_by":"","cost":0.4163,"v1_rank":24,"v1_score":84.0975,"box":[22.5,68.4,80.0,89.0,98.0],"dims":[77.8,78.3,78.0,82.4],"critical_pct":1.0,"omission_pct":8.0,"addition_pct":17.8,"value_tier":6,"cheaper_as_good":"Mitra Qwen3.5 Translate (9B, local)","frontier":{"all":false},"frontier_cloud":{"all":false}},{"key":"qwen_qwen3_8_flash","name":"Qwen3.8 Flash","model":"qwen/qwen3.8-flash","vendor":"Alibaba","local":false,"new":true,"rank":54,"score":77.58,"ci95":2.01,"n":200,"tier":10,"rank_range":"52-55","sonnet":69.97,"sol":85.19,"rank_sonnet":53,"rank_sol":54,"self_excluded":77.58,"self_judged_by":"","cost":0.6182,"v1_rank":null,"v1_score":null,"box":[15.0,69.4,80.2,89.1,97.5],"dims":[77.8,77.2,78.1,82.7],"critical_pct":0.5,"omission_pct":11.2,"addition_pct":11.8,"value_tier":10,"cheaper_as_good":"Mitra Qwen3.5 Translate (9B, local)","frontier":{"all":false},"frontier_cloud":{"all":false}},{"key":"deepseek_deepseek_v4_flash","name":"DeepSeek V4 Flash","model":"deepseek/deepseek-v4-flash","vendor":"DeepSeek","local":false,"new":false,"rank":55,"score":76.02,"ci95":2.14,"n":200,"tier":10,"rank_range":"54-55","sonnet":67.84,"sol":84.2,"rank_sonnet":55,"rank_sol":55,"self_excluded":76.02,"self_judged_by":"","cost":0.0339,"v1_rank":25,"v1_score":82.945,"box":[19.0,66.4,78.8,88.0,98.0],"dims":[75.9,77.0,76.5,80.9],"critical_pct":1.0,"omission_pct":17.5,"addition_pct":9.5,"value_tier":3,"cheaper_as_good":"Mitra Qwen3.5 Translate (9B, local)","frontier":{"all":false},"frontier_cloud":{"all":false}},{"key":"qwen_qwen3_5_122b_a10b","name":"Qwen3.5 122B","model":"qwen/qwen3.5-122b-a10b","vendor":"Alibaba","local":false,"new":false,"rank":56,"score":73.23,"ci95":2.26,"n":200,"tier":11,"rank_range":"56-56","sonnet":65.45,"sol":81.0,"rank_sonnet":56,"rank_sol":56,"self_excluded":73.23,"self_judged_by":"","cost":4.363,"v1_rank":26,"v1_score":79.94,"box":[22.5,62.5,75.0,87.1,98.5],"dims":[72.9,73.2,73.7,79.7],"critical_pct":1.5,"omission_pct":13.8,"addition_pct":15.0,"value_tier":null,"cheaper_as_good":"","frontier":{"all":false},"frontier_cloud":{"all":false}},{"key":"xiaomi_mimo_v2_5_pro","name":"MiMo V2.5 Pro","model":"xiaomi/mimo-v2.5-pro","vendor":"Xiaomi","local":false,"new":false,"rank":57,"score":69.61,"ci95":2.32,"n":200,"tier":12,"rank_range":"57-58","sonnet":60.69,"sol":78.53,"rank_sonnet":57,"rank_sol":57,"self_excluded":69.61,"self_judged_by":"","cost":0.1889,"v1_rank":27,"v1_score":78.815,"box":[26.0,58.0,70.8,82.2,98.0],"dims":[68.9,70.1,69.9,79.4],"critical_pct":1.5,"omission_pct":35.8,"addition_pct":23.2,"value_tier":null,"cheaper_as_good":"","frontier":{"all":false},"frontier_cloud":{"all":false}},{"key":"google_gemini_2_5_flash_lite","name":"Gemini 2.5 Flash Lite","model":"google/gemini-2.5-flash-lite","vendor":"Google","local":false,"new":false,"rank":58,"score":68.69,"ci95":2.37,"n":200,"tier":12,"rank_range":"57-59","sonnet":59.8,"sol":77.58,"rank_sonnet":58,"rank_sol":58,"self_excluded":68.69,"self_judged_by":"","cost":0.0079,"v1_rank":28,"v1_score":76.65,"box":[19.0,57.9,70.0,81.0,98.0],"dims":[67.9,68.7,67.8,79.2],"critical_pct":2.8,"omission_pct":42.0,"addition_pct":16.2,"value_tier":null,"cheaper_as_good":"","frontier":{"all":false},"frontier_cloud":{"all":true}},{"key":"google_gemma_4_31b_it","name":"Gemma 4 31B","model":"google/gemma-4-31b-it","vendor":"Google","local":false,"new":false,"rank":59,"score":66.07,"ci95":2.6,"n":200,"tier":13,"rank_range":"59-60","sonnet":58.0,"sol":74.14,"rank_sonnet":60,"rank_sol":59,"self_excluded":66.07,"self_judged_by":"","cost":0.0101,"v1_rank":29,"v1_score":75.9025,"box":[6.5,56.0,67.5,79.1,98.0],"dims":[65.1,66.0,65.9,78.2],"critical_pct":5.0,"omission_pct":28.5,"addition_pct":26.8,"value_tier":null,"cheaper_as_good":"","frontier":{"all":false},"frontier_cloud":{"all":false}},{"key":"xiaomi_mimo_v2_6_flash","name":"MiMo V2.6 Flash","model":"xiaomi/mimo-v2.6-flash","vendor":"Xiaomi","local":false,"new":true,"rank":60,"score":66.05,"ci95":2.6,"n":200,"tier":13,"rank_range":"59-60","sonnet":58.16,"sol":73.94,"rank_sonnet":59,"rank_sol":60,"self_excluded":66.05,"self_judged_by":"","cost":0.0349,"v1_rank":null,"v1_score":null,"box":[10.0,52.5,68.5,81.0,98.0],"dims":[65.5,65.2,65.9,74.9],"critical_pct":5.0,"omission_pct":26.2,"addition_pct":23.5,"value_tier":null,"cheaper_as_good":"","frontier":{"all":false},"frontier_cloud":{"all":false}},{"key":"qwen_qwen3_6_27b","name":"Qwen3.6 27B","model":"qwen/qwen3.6-27b","vendor":"Alibaba","local":false,"new":false,"rank":61,"score":63.23,"ci95":2.64,"n":200,"tier":14,"rank_range":"61-62","sonnet":54.27,"sol":72.2,"rank_sonnet":62,"rank_sol":61,"self_excluded":63.23,"self_judged_by":"","cost":2.4907,"v1_rank":30,"v1_score":73.3275,"box":[11.5,50.5,65.0,77.0,97.5],"dims":[62.4,61.8,63.3,76.9],"critical_pct":7.8,"omission_pct":36.5,"addition_pct":31.0,"value_tier":null,"cheaper_as_good":"","frontier":{"all":false},"frontier_cloud":{"all":false}},{"key":"qwen_qwen3_6_35b_a3b","name":"Qwen3.6 35B","model":"qwen/qwen3.6-35b-a3b","vendor":"Alibaba","local":false,"new":false,"rank":62,"score":62.51,"ci95":2.65,"n":200,"tier":14,"rank_range":"61-62","sonnet":54.47,"sol":70.56,"rank_sonnet":61,"rank_sol":62,"self_excluded":62.51,"self_judged_by":"","cost":0.8967,"v1_rank":31,"v1_score":72.8925,"box":[16.5,50.0,63.8,78.0,98.0],"dims":[61.4,61.9,62.6,75.0],"critical_pct":7.0,"omission_pct":37.5,"addition_pct":36.0,"value_tier":null,"cheaper_as_good":"","frontier":{"all":false},"frontier_cloud":{"all":false}},{"key":"nvidia_nemotron_3_ultra_550b_a55b","name":"Nemotron 3 Ultra 550B","model":"nvidia/nemotron-3-ultra-550b-a55b","vendor":"NVIDIA","local":false,"new":false,"rank":63,"score":58.35,"ci95":3.14,"n":200,"tier":15,"rank_range":"63-63","sonnet":50.93,"sol":65.77,"rank_sonnet":63,"rank_sol":63,"self_excluded":58.35,"self_judged_by":"","cost":0.879,"v1_rank":32,"v1_score":66.9075,"box":[6.5,41.5,58.5,76.1,97.5],"dims":[56.5,60.4,59.0,72.0],"critical_pct":14.2,"omission_pct":41.2,"addition_pct":41.5,"value_tier":null,"cheaper_as_good":"","frontier":{"all":false},"frontier_cloud":{"all":false}},{"key":"minimax_minimax_m2_7","name":"MiniMax M2.7","model":"minimax/minimax-m2.7","vendor":"MiniMax","local":false,"new":false,"rank":64,"score":52.72,"ci95":2.94,"n":200,"tier":16,"rank_range":"64-64","sonnet":44.72,"sol":60.72,"rank_sonnet":64,"rank_sol":64,"self_excluded":52.72,"self_judged_by":"","cost":0.7046,"v1_rank":33,"v1_score":63.015,"box":[6.5,36.9,53.0,67.1,98.0],"dims":[50.8,53.3,51.9,69.2],"critical_pct":15.5,"omission_pct":54.8,"addition_pct":40.0,"value_tier":null,"cheaper_as_good":"","frontier":{"all":false},"frontier_cloud":{"all":false}},{"key":"openai_gpt_5_4_nano","name":"GPT-5.4 nano","model":"openai/gpt-5.4-nano","vendor":"OpenAI","local":false,"new":false,"rank":65,"score":46.83,"ci95":2.77,"n":200,"tier":17,"rank_range":"65-65","sonnet":40.8,"sol":52.86,"rank_sonnet":65,"rank_sol":65,"self_excluded":46.83,"self_judged_by":"","cost":0.032,"v1_rank":34,"v1_score":56.1475,"box":[7.5,34.0,45.2,59.2,96.5],"dims":[45.2,46.4,46.6,58.8],"critical_pct":22.0,"omission_pct":52.8,"addition_pct":63.0,"value_tier":null,"cheaper_as_good":"","frontier":{"all":false},"frontier_cloud":{"all":false}},{"key":"openai_gpt_oss_120b","name":"GPT-OSS 120B","model":"openai/gpt-oss-120b","vendor":"OpenAI","local":false,"new":false,"rank":66,"score":26.66,"ci95":2.71,"n":200,"tier":18,"rank_range":"66-66","sonnet":23.06,"sol":30.27,"rank_sonnet":66,"rank_sol":66,"self_excluded":26.66,"self_judged_by":"","cost":0.0875,"v1_rank":35,"v1_score":32.9675,"box":[3.0,13.0,21.5,35.0,96.5],"dims":[24.9,25.6,24.4,48.1],"critical_pct":65.8,"omission_pct":74.0,"addition_pct":70.8,"value_tier":null,"cheaper_as_good":"","frontier":{"all":false},"frontier_cloud":{"all":false}}]};
+const S = D.systems, K = D.kpi;
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt = (x, d=1) => x == null ? '' : x.toFixed(d);
+const usd = c => c === 0 ? '$0 (local)' : c < 0.1 ? '$' + c.toFixed(3) : '$' + c.toFixed(2);
+const num = n => n.toLocaleString('en-US');
+
+/* text slots */
+$('run-id').textContent = D.run_id; $('foot-run').textContent = D.run_id; $('foot-date').textContent = D.frozen;
+$('lede-n').textContent = K.systems; $('lede-new').textContent = K.new_systems; $('badge-new').textContent = K.new_systems + ' systems added';
+$('ban-v1').textContent = K.v1_systems; $('ban-rho').textContent = K.spearman_v1.toFixed(2);
+$('chg-new').textContent = K.new_systems; $('chg-v1').textContent = K.v1_systems;
+const short = S.filter(s => s.n < K.passages).sort((a,b) => a.n - b.n);
+(function(){ const a = S.find(s => s.model === 'openai/gpt-6.1-sol'), b = S.find(s => s.model === 'openai/gpt-6.1-sol-pro');
+  $('lim-self').innerHTML = `<code>${esc(D.judges[1])}</code> judged ${esc(a.name)} (rank ${a.rank}) and its sibling ${esc(b.name)} (rank ${b.rank}), and itself places them at ranks ${a.rank_sol} and ${b.rank_sol} of ${K.systems}. The self-excluded column removes a judge's score for its own model only, not for a sibling. The other judge places these two systems at ranks ${a.rank_sonnet} and ${b.rank_sonnet}.`; })();
+if (S.some(s => s.key.endsWith('reasoning_high'))) $('lim-argon').hidden = false;
+$('lim-n').textContent = short.length + ' systems have fewer than ' + K.passages + ' scored passages, because some translations failed or were rejected by the output checks: ' + short.map(s => s.name + ' ' + s.n).join(', ') + '.';
+
+/* tooltip */
+const tip = $('tip');
+function bindTip(el, html){
+  el.addEventListener('pointermove', e => { tip.innerHTML = html; tip.style.display = 'block';
+    const w = tip.offsetWidth, h = tip.offsetHeight;
+    tip.style.left = Math.min(window.innerWidth - w - 10, e.clientX + 14) + 'px';
+    tip.style.top = (e.clientY + h + 24 > window.innerHeight ? e.clientY - h - 12 : e.clientY + 16) + 'px'; });
+  el.addEventListener('pointerleave', () => tip.style.display = 'none');
+}
+const tipHtml = s => `<b>${esc(s.name)}</b>Rank ${s.rank} · tier ${s.tier} · combined ${fmt(s.score,2)} ± ${fmt(s.ci95,1)}<br>${esc(D.judges[0])} ${fmt(s.sonnet)} · ${esc(D.judges[1])} ${fmt(s.sol)}<br>Cost per 200 passages ${usd(s.cost)}${s.n < K.passages ? '<br>' + s.n + ' of ' + K.passages + ' passages scored' : ''}${s.new ? '<br>Added in v1.1' : '<br>v1 rank ' + s.v1_rank}`;
+
+/* KPIs */
+$('kpis').innerHTML = [
+  ['Systems', K.systems, K.v1_systems + ' from v1 · ' + K.new_systems + ' added'],
+  ['Passages', K.passages, 'per system, unchanged from v1'],
+  ['Translations scored', num(K.outputs_scored), 'of ' + num(K.outputs_expected) + ' · ' + (K.outputs_expected - K.outputs_scored) + ' not scored'],
+  ['Judge scores', num(K.judge_rows), 'two judges on every translation'],
+  ['Tiers', K.tiers, 'groups the evidence can separate'],
+  ['Judge agreement', K.spearman_judges.toFixed(3), 'rank correlation between judges'],
+].map(([l,v,d]) => `<div class="kpi"><div class="l">${l}</div><div class="v">${v}</div><div class="d">${d}</div></div>`).join('');
+
+/* top cards: tier 1 */
+const t1 = S.filter(s => s.tier === 1);
+$('top-cards').innerHTML = t1.map(s => `<div class="top"><div class="r">TIER 1 · RANK ${s.rank}</div><div class="n">${esc(s.name)}${s.new ? '<span class="tag">new</span>' : ''}</div><div class="s">${fmt(s.score,2)}</div><div class="m">± ${fmt(s.ci95,1)} · rank range ${s.rank_range}<br>${usd(s.cost)} per 200 passages</div></div>`).join('');
+
+/* leaderboard bars */
+$('lb-title').textContent = 'All ' + K.systems + ' systems by combined score';
+(function(){
+  const host = $('lb-bars'); let tier = 0;
+  const w = v => Math.max(0, Math.min(100, v));
+  S.forEach(s => {
+    if (s.tier !== tier){ tier = s.tier; const h = document.createElement('div'); h.className = 'tierhead'; h.textContent = 'Tier ' + tier; host.appendChild(h); }
+    const r = document.createElement('div'); r.className = 'row';
+    r.innerHTML = `<span class="rk">${s.rank}</span><span class="nm">${esc(s.name)}${s.self_judged_by ? ' †' : ''}${s.new ? '<span class="tag">new</span>' : ''}</span><span class="track"><div class="bar" style="width:${w(s.score).toFixed(2)}%"></div></span><span class="val">${fmt(s.score,1)}<small>± ${fmt(s.ci95,1)}</small></span>`;
+    bindTip(r, tipHtml(s)); host.appendChild(r);
+  });
+  const n = document.createElement('p'); n.className = 'note'; n.innerHTML = 'Bars run from 0 to 100. Among the leading systems the differences are small, so read the numbers and the tiers there. † one of the two judges is the same model as this system.';
+  host.appendChild(n);
+})();
+
+/* full table */
+function renderTable(){
+  const q = $('lb-filter').value.trim().toLowerCase(), onlyNew = $('lb-new').checked;
+  const rows = S.filter(s => (!onlyNew || s.new) && (!q || (s.name + ' ' + s.vendor + ' ' + s.model).toLowerCase().includes(q)));
+  $('lb-table').innerHTML = `<table><thead><tr><th>Rank</th><th class="l">System</th><th>Combined</th><th>± 95%</th><th>Tier</th><th>Rank range</th><th>Sonnet 5.5</th><th>Sol 6.1</th><th>Self-excluded</th><th>n</th><th>Cost / 200</th><th>v1 rank</th><th>v1 score</th></tr></thead><tbody>` +
+    rows.map(s => `<tr><td>${s.rank}</td><td class="l">${esc(s.name)}${s.self_judged_by ? ' †' : ''}${s.new ? '<span class="tag">new</span>' : ''}<span class="id">${esc(s.model)}</span></td><td><strong>${fmt(s.score,2)}</strong></td><td class="dim">${fmt(s.ci95,2)}</td><td>${s.tier}</td><td>${s.rank_range}</td><td>${fmt(s.sonnet,1)} <span class="dim">#${s.rank_sonnet}</span></td><td>${fmt(s.sol,1)} <span class="dim">#${s.rank_sol}</span></td><td class="${s.self_judged_by ? '' : 'dim'}">${fmt(s.self_excluded,2)}</td><td class="${s.n < K.passages ? '' : 'dim'}">${s.n}</td><td>${usd(s.cost)}</td><td class="dim">${s.v1_rank ?? ''}</td><td class="dim">${s.v1_score == null ? '' : fmt(s.v1_score,2)}</td></tr>`).join('') +
+    `</tbody></table>` + (rows.length ? '' : '<p class="note">No system matches.</p>');
+}
+$('lb-filter').addEventListener('input', renderTable); $('lb-new').addEventListener('change', renderTable); renderTable();
+/* the "systems added" badge opens the full table filtered to the additions */
+$('badge-new').addEventListener('click', () => { $('lb-details').open = true; $('lb-new').checked = true; renderTable(); });
+
+/* svg helpers */
+const NS = 'http://www.w3.org/2000/svg';
+function el(tag, attrs, parent, text){ const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (text != null) e.textContent = text; if (parent) parent.appendChild(e); return e; }
+function hostWidth(host, minW){ return Math.max(minW, Math.floor(host.clientWidth || minW)); }
+function sizedSvg(host, W, H, label){ return el('svg', {width:W, height:H, viewBox:`0 0 ${W} ${H}`, role:'img', 'aria-label':label, style:`width:${W}px;height:${H}px;max-width:none`}, host); }
+function niceTicks(lo, hi, step){ const out = []; for (let v = Math.ceil(lo/step)*step; v <= hi + 1e-9; v += step) out.push(+v.toFixed(6)); return out; }
+
+/* Pareto chart */
+let pScope = 'top5';
+function drawPareto(){
+  const host = $('pareto'); const W = hostWidth(host, 520); host.innerHTML = '';
+  const pts = S.filter(s => pScope === 'all' || s.tier <= 5);
+  const H = Math.round(Math.min(560, Math.max(380, W * 0.5))), m = {l:58, r:26, t:18, b:52};
+  const svg = sizedSvg(host, W, H, 'Scatter plot of combined score against translation cost per 200 passages on a logarithmic axis, with the Pareto frontier drawn as a stepped line. The same values are in the table view below.');
+  const X0 = 0.004, xmin = 0.003, xmax = 13;
+  const ys = pts.map(s => s.score), ymin = Math.floor(Math.min(...ys) - (pScope === 'all' ? 2 : 0.6)), ymax = Math.max(...ys) + 1.2;
+  const x = c => m.l + (Math.log10(Math.max(c, X0)) - Math.log10(xmin)) / (Math.log10(xmax) - Math.log10(xmin)) * (W - m.l - m.r);
+  const y = v => H - m.b - (v - ymin) / (ymax - ymin) * (H - m.t - m.b);
+  niceTicks(ymin, ymax, pScope === 'all' ? 10 : 1).forEach(v => { el('line', {x1:m.l, x2:W-m.r, y1:y(v), y2:y(v), stroke:'var(--grid)', 'stroke-width':1}, svg); el('text', {x:m.l-10, y:y(v)+4, 'text-anchor':'end', class:'tick'}, svg, v); });
+  [[X0,'$0'],[0.01,'$0.01'],[0.1,'$0.10'],[1,'$1'],[10,'$10']].forEach(([c,t]) => { el('line', {x1:x(c), x2:x(c), y1:m.t, y2:H-m.b, stroke:'var(--grid)', 'stroke-width':1}, svg); el('text', {x:x(c), y:H-m.b+20, 'text-anchor':'middle', class:'tick'}, svg, t); });
+  el('text', {x:(m.l+W-m.r)/2, y:H-8, 'text-anchor':'middle', class:'axl'}, svg, 'Translation cost per 200 passages (USD, log scale)');
+  el('text', {x:16, y:(m.t+H-m.b)/2, 'text-anchor':'middle', class:'axl', transform:`rotate(-90 16 ${(m.t+H-m.b)/2})`}, svg, 'Combined score');
+  const lines = [];
+  const stairs = (flag, color) => { const f = pts.filter(s => s[flag][pScope]).sort((a,b) => a.cost - b.cost); let d = ''; f.forEach((s,i) => { d += i ? ` H${x(s.cost)} V${y(s.score)}` : `M${x(s.cost)} ${y(s.score)}`;
+      if (i){ const px = x(f[i-1].cost), py = y(f[i-1].score); lines.push({x0:px, x1:x(s.cost), y0:py-4, y1:py+4}, {x0:x(s.cost)-4, x1:x(s.cost)+4, y0:y(s.score), y1:py}); } });
+    d += ` H${W-m.r}`; const z = f[f.length-1]; lines.push({x0:x(z.cost), x1:W-m.r, y0:y(z.score)-4, y1:y(z.score)+4}); el('path', {d, fill:'none', stroke:color, 'stroke-width':2, 'stroke-linejoin':'round', 'stroke-linecap':'round'}, svg); return new Set(f.map(s => s.key)); };
+  const onC = stairs('frontier_cloud', 'var(--s2)'), onA = stairs('frontier', 'var(--s1)');
+  const placed = lines.slice();
+  const order = pts.slice().sort((a,b) => (onA.has(a.key)||onC.has(a.key)) - (onA.has(b.key)||onC.has(b.key)));
+  order.forEach(s => { const col = onA.has(s.key) ? 'var(--s1)' : onC.has(s.key) ? 'var(--s2)' : 'var(--other)';
+    const g = el('g', {tabindex:0}, svg); el('circle', {cx:x(s.cost), cy:y(s.score), r:13, fill:'transparent'}, g);
+    el('circle', {cx:x(s.cost), cy:y(s.score), r:5.5, fill:col, stroke:'var(--card)', 'stroke-width':2}, g); bindTip(g, tipHtml(s)); placed.push({x0:x(s.cost)-8, x1:x(s.cost)+8, y0:y(s.score)-8, y1:y(s.score)+8}); });
+  /* selective direct labels: both frontiers and tier 1; skipped when no free position exists */
+  const hit = b => placed.some(p => b.x0 < p.x1 && b.x1 > p.x0 && b.y0 < p.y1 && b.y1 > p.y0) || b.x0 < m.l || b.x1 > W - 4 || b.y0 < 2 || b.y1 > H - m.b;
+  pts.filter(s => onA.has(s.key) || onC.has(s.key) || s.tier === 1).sort((a,b) => (onA.has(b.key) - onA.has(a.key)) || b.score - a.score).forEach(s => {
+    const t1 = s.name.replace(' (9B, local)', '').replace(' (preview)', ''), t2 = fmt(s.score,1) + ' · ' + (s.cost === 0 ? '$0, local' : usd(s.cost));
+    const w = Math.max(t1.length * 6.5, t2.length * 5.6) + 4, cx = x(s.cost), cy = y(s.score);
+    const cands = [[cx+11, cy-12, 'start'], [cx-11, cy-12, 'end'], [cx+11, cy+19, 'start'], [cx-11, cy+19, 'end'], [cx, cy-27, 'middle'], [cx, cy+26, 'middle'], [cx+11, cy-27, 'start'], [cx-11, cy-27, 'end'], [cx+11, cy+34, 'start'], [cx-11, cy+34, 'end'], [cx+24, cy-2, 'start'], [cx-24, cy-2, 'end'], [cx, cy-44, 'middle'], [cx, cy+42, 'middle'], [cx+30, cy+40, 'start'], [cx-30, cy+40, 'end'], [cx+30, cy-40, 'start'], [cx-30, cy-40, 'end']];
+    for (const [lx, ly, anchor] of cands){ const x0 = anchor === 'start' ? lx : anchor === 'end' ? lx - w : lx - w/2; const b = {x0, x1:x0+w, y0:ly-11, y1:ly+15};
+      if (!hit(b)){ placed.push(b); el('text', {x:lx, y:ly, 'text-anchor':anchor, class:'lab'}, svg, t1); el('text', {x:lx, y:ly+13, 'text-anchor':anchor, class:'lab2'}, svg, t2); break; } }
+  });
+}
+$('p-top5').textContent = 'Tiers 1 to 5 (' + S.filter(s => s.tier <= 5).length + ')'; $('p-all').textContent = 'All ' + K.systems + ' systems';
+[['p-top5','top5'],['p-all','all']].forEach(([id,sc]) => $(id).addEventListener('click', () => { pScope = sc; $('p-top5').setAttribute('aria-pressed', sc === 'top5'); $('p-all').setAttribute('aria-pressed', sc === 'all'); drawPareto(); }));
+drawPareto();
+
+/* value table */
+$('value-table').innerHTML = `<table><thead><tr><th>Rank</th><th class="l">System</th><th>Combined</th><th>Tier</th><th>Cost / 200</th><th class="l">Frontier</th><th class="l">Cheapest at least as good</th></tr></thead><tbody>` +
+  S.map(s => `<tr><td>${s.rank}</td><td class="l">${esc(s.name)}</td><td>${fmt(s.score,2)}</td><td>${s.tier}</td><td>${usd(s.cost)}</td><td class="l">${s.frontier.all ? 'On the frontier' : s.frontier_cloud.all ? 'Hosted-only frontier' : '<span class="dim" style="color:var(--muted)">no</span>'}</td><td class="l dim">${esc(s.cheaper_as_good)}</td></tr>`).join('') + `</tbody></table>`;
+
+/* box plots */
+function drawBoxes(){
+  const host = $('boxes'), W = hostWidth(host, 460); host.innerHTML = '';
+  const rowH = 19, m = {l:Math.min(262, Math.round(W * 0.36)), r:44, t:8, b:34}, H = m.t + m.b + rowH * S.length;
+  const maxChars = Math.floor((m.l - 16) / 6.4), short = t => t.length > maxChars ? t.slice(0, maxChars - 1) + '…' : t;
+  const svg = sizedSvg(host, W, H, 'Box plots of per-passage combined scores for every system, in rank order.');
+  const x = v => m.l + v / 100 * (W - m.l - m.r);
+  [0,20,40,60,80,100].forEach(v => { el('line', {x1:x(v), x2:x(v), y1:m.t, y2:H-m.b, stroke:'var(--grid)', 'stroke-width':1}, svg); el('text', {x:x(v), y:H-m.b+18, 'text-anchor':'middle', class:'tick'}, svg, v); });
+  S.forEach((s,i) => { const cy = m.t + rowH * i + rowH/2, [mn,q1,md,q3,mx] = s.box, g = el('g', {}, svg);
+    el('rect', {x:0, y:cy-rowH/2, width:W, height:rowH, fill:'transparent'}, g);
+    el('text', {x:m.l-12, y:cy+4, 'text-anchor':'end', class:'lab', style:'font-size:11.5px;fill:#d6dcea'}, g, short(s.name));
+    el('line', {x1:x(mn), x2:x(mx), y1:cy, y2:cy, stroke:'var(--s1)', 'stroke-width':1.5, opacity:.55}, g);
+    el('rect', {x:x(q1), y:cy-5.5, width:Math.max(2, x(q3)-x(q1)), height:11, rx:3, fill:'var(--s1)', opacity:.55}, g);
+    el('line', {x1:x(md), x2:x(md), y1:cy-7.5, y2:cy+7.5, stroke:'var(--ink)', 'stroke-width':2, 'stroke-linecap':'round'}, g);
+    el('text', {x:W-m.r+8, y:cy+4, class:'tick'}, g, fmt(md,0));
+    bindTip(g, `<b>${esc(s.name)}</b>Median ${fmt(md)} · mean ${fmt(s.score,2)}<br>Middle half ${fmt(q1)} to ${fmt(q3)}<br>Lowest ${fmt(mn)} · highest ${fmt(mx)}<br>${s.n} passages`); });
+  el('text', {x:(m.l+W-m.r)/2, y:H-2, 'text-anchor':'middle', class:'axl'}, svg, 'Combined score per passage · the number at right is the median');
+}
+drawBoxes();
+
+/* dimension table (sequential single hue, value printed in every cell) */
+function renderDims(){
+  const q = $('dim-filter').value.trim().toLowerCase();
+  const rows = S.filter(s => !q || (s.name + ' ' + s.vendor).toLowerCase().includes(q));
+  const all = S.flatMap(s => s.dims), lo = 70, hi = Math.max(...all);
+  const cell = v => `<td class="c"><div style="background:rgba(57,135,229,${(0.05 + 0.6 * Math.max(0, v - lo) / (hi - lo)).toFixed(3)})">${fmt(v)}</div></td>`;
+  $('dim-table').innerHTML = `<table><thead><tr><th>Rank</th><th class="l">System</th>${D.dims.map(d => `<th>${d}</th>`).join('')}<th>Critical failure</th><th>Omission</th><th>Addition</th></tr></thead><tbody>` +
+    rows.map(s => `<tr><td>${s.rank}</td><td class="l">${esc(s.name)}</td>${s.dims.map(cell).join('')}<td>${fmt(s.critical_pct)}%</td><td>${fmt(s.omission_pct)}%</td><td>${fmt(s.addition_pct)}%</td></tr>`).join('') + `</tbody></table>`;
+}
+$('dim-filter').addEventListener('input', renderDims); renderDims();
+
+/* scatter helper for the two agreement charts */
+function scatter(hostId, pts, xk, yk, xl, yl, labelKeys){
+  const host = $(hostId), W = hostWidth(host, 340); host.innerHTML = '';
+  const H = Math.round(Math.min(440, Math.max(300, W * 0.76))), m = {l:52, r:18, t:14, b:46};
+  const svg = sizedSvg(host, W, H, `Scatter plot of ${yl} against ${xl}. Values are in the full table.`);
+  const xs = pts.map(p => p[xk]), ys = pts.map(p => p[yk]);
+  const x0 = Math.floor(Math.min(...xs)/10)*10, x1 = Math.ceil(Math.max(...xs)/10)*10, y0 = Math.floor(Math.min(...ys)/10)*10, y1 = Math.ceil(Math.max(...ys)/10)*10;
+  const x = v => m.l + (v - x0) / (x1 - x0) * (W - m.l - m.r), y = v => H - m.b - (v - y0) / (y1 - y0) * (H - m.t - m.b);
+  niceTicks(x0, x1, 10).forEach(v => { el('line', {x1:x(v), x2:x(v), y1:m.t, y2:H-m.b, stroke:'var(--grid)'}, svg); el('text', {x:x(v), y:H-m.b+18, 'text-anchor':'middle', class:'tick'}, svg, v); });
+  niceTicks(y0, y1, 10).forEach(v => { el('line', {x1:m.l, x2:W-m.r, y1:y(v), y2:y(v), stroke:'var(--grid)'}, svg); el('text', {x:m.l-9, y:y(v)+4, 'text-anchor':'end', class:'tick'}, svg, v); });
+  el('text', {x:(m.l+W-m.r)/2, y:H-6, 'text-anchor':'middle', class:'axl'}, svg, xl);
+  el('text', {x:14, y:(m.t+H-m.b)/2, 'text-anchor':'middle', class:'axl', transform:`rotate(-90 14 ${(m.t+H-m.b)/2})`}, svg, yl);
+  const placed = pts.map(p => ({x0:x(p[xk])-6, x1:x(p[xk])+6, y0:y(p[yk])-6, y1:y(p[yk])+6}));
+  pts.forEach(p => { const g = el('g', {tabindex:0}, svg); el('circle', {cx:x(p[xk]), cy:y(p[yk]), r:11, fill:'transparent'}, g); el('circle', {cx:x(p[xk]), cy:y(p[yk]), r:4.5, fill:'var(--s1)', stroke:'var(--card)', 'stroke-width':2}, g); bindTip(g, `<b>${esc(p.name)}</b>${xl} ${fmt(p[xk],1)}<br>${yl} ${fmt(p[yk],1)}`); });
+  pts.filter(p => labelKeys.includes(p.key)).forEach(p => { const t = p.name.replace(' (9B, local)', '').replace(' (preview)', ''), w = t.length * 6.3 + 4, cx = x(p[xk]), cy = y(p[yk]);
+    for (const [lx, ly, a] of [[cx+9, cy+4, 'start'], [cx-9, cy+4, 'end'], [cx, cy-11, 'middle'], [cx, cy+19, 'middle']]){ const bx = a === 'start' ? lx : a === 'end' ? lx - w : lx - w/2, b = {x0:bx, x1:bx+w, y0:ly-11, y1:ly+3};
+      if (!placed.some(q => b.x0 < q.x1 && b.x1 > q.x0 && b.y0 < q.y1 && b.y1 > q.y0) && b.x0 > m.l && b.x1 < W - 2 && b.y0 > 2){ placed.push(b); el('text', {x:lx, y:ly, 'text-anchor':a, class:'lab2', style:'fill:var(--ink2)'}, svg, t); break; } } });
+}
+const first = S[0].key, last = S[S.length-1].key, mid = S[Math.floor(S.length/2)].key;
+const gap = S.slice().sort((a,b) => Math.abs(b.rank_sonnet - b.rank_sol) - Math.abs(a.rank_sonnet - a.rank_sol)).slice(0,2).map(s => s.key);
+const drawJudges = () => scatter('sc-judges', S, 'sonnet', 'sol', 'Score from ' + D.judges[0], 'Score from ' + D.judges[1], [first, last, mid, ...gap]);
+drawJudges();
+const mean = k => S.reduce((a,s) => a + s[k], 0) / S.length;
+$('j-rho').textContent = 'rank correlation ' + K.spearman_judges.toFixed(3);
+$('j-note').innerHTML = `<strong>The second judge is the more lenient.</strong> Across the ${K.systems} systems, <code>${esc(D.judges[1])}</code> averages ${fmt(mean('sol'))} and <code>${esc(D.judges[0])}</code> ${fmt(mean('sonnet'))}. The combined score is their plain average, so neither scale is rescaled to the other.`;
+const V = S.filter(s => s.v1_score != null);
+const vr = V.slice().sort((a,b) => a.rank - b.rank).map((s,i) => ({...s, pos:i+1}));
+const moved = vr.slice().sort((a,b) => Math.abs(b.pos - b.v1_rank) - Math.abs(a.pos - a.v1_rank)).slice(0,3).map(s => s.key);
+const drawV1 = () => scatter('sc-v1', V, 'v1_score', 'score', 'v1 score (July judges)', 'v1.1 combined score', [vr[0].key, vr[vr.length-1].key, ...moved]);
+drawV1();
+/* charts are drawn at the window's real width; redraw when it changes */
+let resizeTimer = null, lastW = window.innerWidth;
+window.addEventListener('resize', () => { if (window.innerWidth === lastW) return; lastW = window.innerWidth; clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => { drawPareto(); drawBoxes(); drawJudges(); drawV1(); }, 150); });
+$('v-rho').textContent = K.v1_systems + ' systems · rank correlation ' + K.spearman_v1.toFixed(2);
+</script>
+</body>
+</html>
